@@ -1,0 +1,9 @@
+requests
+sqlalchemy
+pymysql
+python-multipart
+pydantic
+PyJWT  
+python-dotenv
+uvicorn
+fastapi

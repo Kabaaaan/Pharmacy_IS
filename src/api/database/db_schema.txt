@@ -1,0 +1,22 @@
+Worker (id: int, role_id: int, pharmacy_id: int, FIO: text, salary: decimal, enter_date: date, phone_number: text, home_address: text) -- Сотрудники.
+Role (id: int, name: text) -- Роли сотрудников.
+
+Doctor (id: int, name: text, license_number: int) -- Доктор, выписывающий рецепт.
+Client (id: int, name: text) -- Клиент аптеки (покупатель).
+Order (id: int, type_pay_id: int, pharmacist_id: int, total_price: decimal, date: date) -- Заказ (покупка).
+TypePay (id: int, name: text, additional_info: text) -- типы оплаты (карта, наличные, СБП).
+OrderItems (order_id: int, medicine_id: int, stock_id: int, count: int, recipe_id: int) -- Элемент покупки. 
+Recipe (id: int, doctor_id: int, client_id: int, medicine_id: int, issue_date: date) -- Рецепт на лекарство. 
+
+Medicine (id: int, name: text, price: decimal, description: text, need_recipe: bool) -- Товар (лекарство).
+Supplier (id: int, name: text, additional_info: text, email: text, phone_number: text) -- Поставщик.
+AvailibleMedicineList (supplier_id: int, medicine_id: int) -- Список товаров, доступных у данного поставщика.
+Shipment (id: int, date: date, comment: text, invoice: text) -- Закупка. 
+ShipmentItems (id: int, shipment_id: int, medicine_id: int, count: int, best_before_date: date) -- Элемент закупки.
+WareHouse (id: int, shipment_item_id: int, count: int) -- Склад (один).
+
+Stock (id: int, shipment_item_id: int, pharmacy_id: int, count: int) -- Остатки лекарств в аптеке (по закупкам, т.е. партия).
+Pharmacy (id: int, address: text, phone_number: text, schedule: text) -- Аптека.
+
+Delivery (id: int, date: date) -- Поставка до аптек со склада. 
+DeliveryItems (delivery_id: int, stock_id: int, quantity: int) -- Элементы поставки. 
