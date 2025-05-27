@@ -1,13 +1,13 @@
 from fastapi import APIRouter
 
-from api.v1.endpoints.auth import router as auth_router
-from api.v1.endpoints.workers import router as workers_router
-from api.v1.endpoints.deliveries import router as deliveries_router
-from api.v1.endpoints.medicines import router as medicines_router
-from api.v1.endpoints.orders import router as orders_router
-from api.v1.endpoints.pharmacies import router as pharmacies_router
-from api.v1.endpoints.reports import router as reports_router
-from api.v1.endpoints.shipments import router as shipments_router
+from v1.endpoints.auth import router as auth_router
+from v1.endpoints.workers import router as workers_router
+from v1.endpoints.deliveries import router as deliveries_router
+from v1.endpoints.medicines import router as medicines_router
+from v1.endpoints.orders import router as orders_router
+from v1.endpoints.pharmacies import router as pharmacies_router
+from v1.endpoints.reports import router as reports_router
+from v1.endpoints.shipments import router as shipments_router
 
 
 api_router = APIRouter(prefix="/v1")

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Date, Boolean, ForeignKey, Numeric, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from session import Base  
+from .session import Base  
 
 Base = declarative_base()
 
@@ -32,7 +32,6 @@ class Medicine(Base):
     available_suppliers = relationship("Supplier", secondary="availible_medicine_list", back_populates="available_medicines")
     shipment_items = relationship("ShipmentItems", back_populates="medicine")
     order_items = relationship("OrderItems", back_populates="medicine")
-    stock_items = relationship("Stock", back_populates="medicine")
 
 class Supplier(Base):
     __tablename__ = 'supplier'

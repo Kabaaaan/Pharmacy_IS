@@ -3,10 +3,10 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.v1.routers import api_router
+from v1.routers import api_router
 import uvicorn
 
-from.database import init_db
+from database import init_db
 
 app = FastAPI(
     title="Pharmacy IS API",

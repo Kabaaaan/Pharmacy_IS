@@ -1,8 +1,11 @@
-from session import engine, SessionLocal
-from models import Base
+from .session import engine, SessionLocal
+from .models import Base
 
 def init_db():
-    # Создаем все таблицы
+
+    # Base.metadata.drop_all(engine)
+    # TODO: заполнение таблиц тестовыми данными
+
     Base.metadata.create_all(bind=engine)
 
 def get_db():
