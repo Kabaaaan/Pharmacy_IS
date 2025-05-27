@@ -54,6 +54,9 @@ DB_DATABASE=pharmacy_db
 ```
 
 2. Инициализируйте БД:
+```mysql
+create database pharmacy_db
+```
 ```bash
 python src/api/database/init_db.py
 ```
