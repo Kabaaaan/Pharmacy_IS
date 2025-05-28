@@ -3,7 +3,6 @@ from datetime import datetime, date
 from tkinter import messagebox
 from .home import api
 import threading
-import time
 
 
 class StatisticsPage(ctk.CTkFrame):
@@ -44,7 +43,7 @@ class StatisticsPage(ctk.CTkFrame):
             corner_radius=14,
             border_width=1,
             border_color="#333333",
-            height=160  # Указываем конкретную высоту в пикселях
+            height=160  
         )
         top_frame.pack(fill="x", padx=20, pady=(25, 25))
 
@@ -105,7 +104,6 @@ class StatisticsPage(ctk.CTkFrame):
         )
         self.summary_frame.pack(fill="x", padx=20, pady=(0, 20))
         
-        # Заголовок панели статистики
         ctk.CTkLabel(
             self.summary_frame,
             text="ОБЩАЯ СТАТИСТИКА",
@@ -273,7 +271,6 @@ class StatisticsPage(ctk.CTkFrame):
         )
         container.pack(fill="x", padx=10, pady=8)
         
-        # Верхняя строка с основной информацией
         top_frame = ctk.CTkFrame(container, fg_color="transparent")
         top_frame.pack(fill="x", padx=10, pady=(10, 0))
         
@@ -293,7 +290,6 @@ class StatisticsPage(ctk.CTkFrame):
             anchor="e"
         ).pack(side="right")
         
-        # Нижняя строка с дополнительной информацией
         bottom_frame = ctk.CTkFrame(container, fg_color="transparent")
         bottom_frame.pack(fill="x", padx=10, pady=(0, 10))
         

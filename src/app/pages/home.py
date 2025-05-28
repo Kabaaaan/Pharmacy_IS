@@ -12,7 +12,6 @@ class HomePage(ctk.CTkFrame):
         super().__init__(parent, fg_color="#2B2B2B")
         self.controller = controller
 
-        # Заголовок
         self.label_title = ctk.CTkLabel(
             self,
             text="Панель управления сетью аптек",
@@ -21,7 +20,6 @@ class HomePage(ctk.CTkFrame):
         )
         self.label_title.pack(pady=(50, 20))
 
-        # Кнопки-навигации
         btn_width = 250
         btn_height = 45
         btn_font = ctk.CTkFont(size=16)

@@ -1,5 +1,4 @@
 import customtkinter as ctk
-from pages.home import HomePage
 
 class App(ctk.CTk):
 
@@ -9,18 +8,14 @@ class App(ctk.CTk):
         self.geometry("900x700")
         self.resizable(True, True)
 
-        # Установка глобальной темы «Dark»
         ctk.set_appearance_mode("Dark")
         ctk.set_default_color_theme("blue")
 
-        # Контейнер для всех страниц
         self.container = ctk.CTkFrame(self, corner_radius=0)
         self.container.pack(fill="both", expand=True)
 
-        # Словарь для хранения экземпляров страниц
         self.pages = {}
 
-        # Показать главную страницу
         self.show_page("HomePage")
 
     def show_page(self, page_name):

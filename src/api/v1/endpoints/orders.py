@@ -1,5 +1,4 @@
-from fastapi import APIRouter, HTTPException, Response, Depends, status
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, HTTPException, status
 from datetime import date
 
 from v1.schemas.schemas import *
