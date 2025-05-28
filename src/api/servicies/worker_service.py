@@ -137,13 +137,3 @@ class WorkerService:
             return worker
         finally:
             db.close()
-
-
-# roles = [
-#     {"name": "Администратор"},
-#     {"name": "Фармацевт"},
-#     {"name": "Менеджер по закупкам"},
-#     {"name": "Менеджер по поставкам"}
-# ]
-# for role in roles:
-#     RoleService.create_role(name=role["name"])

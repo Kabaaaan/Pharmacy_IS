@@ -12,9 +12,6 @@ from sqlalchemy.exc import IntegrityError
 
 @router.get("/", response_model=List[MedicineResponse])
 async def get_all_medicines():
-    """
-    Получить список всех лекарств
-    """
     try:
         medicines = MedicineService.get_all_medicines()
         return medicines
@@ -26,11 +23,6 @@ async def get_all_medicines():
 
 @router.get("/{medicine_id}", response_model=MedicineResponse)
 async def get_medicine(medicine_id: int):
-    """
-    Получить лекарство по ID
-    
-    - **medicine_id**: ID лекарства (обязательный параметр)
-    """
     medicine = MedicineService.get_medicine_by_id(medicine_id)
     if not medicine:
         raise HTTPException(

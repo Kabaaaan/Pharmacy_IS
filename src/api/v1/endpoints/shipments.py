@@ -66,9 +66,7 @@ async def create_shipment(shipment_data: ShipmentCreate):
 @router.post(
     "supplier/medicines",
     response_model=SupplierMedicineLinkResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="Добавить лекарство к поставщику",
-    description="Создает связь между поставщиком и лекарством в таблице доступных лекарств"
+    status_code=status.HTTP_201_CREATED
 )
 async def add_medicine_to_supplier(
     link_data: SupplierMedicineLinkCreate
