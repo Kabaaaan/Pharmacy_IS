@@ -1,6 +1,7 @@
 from database.session import SessionLocal
 from database.models import Recipe, Doctor, Client, Medicine
 from datetime import date
+from database.models import Order
 
 class RecipeService:
     @staticmethod
@@ -123,5 +124,26 @@ class RecipeService:
         db = SessionLocal()
         try:
             return db.query(Recipe).filter(Recipe.issue_date >= min_date).all()
+        finally:
+            db.close()
+
+
+class OrderService:
+    @staticmethod
+    def get_orders_after_date(start_date: date):
+        db = SessionLocal()
+        try:
+            return db.query(Order).filter(Order.date >= start_date).all()
+        finally:
+            db.close()
+
+    @staticmethod
+    def get_order_summary_after_date(start_date: date):
+        db = SessionLocal()
+        try:
+            orders = db.query(Order).filter(Order.date >= start_date).all()
+            total_count = len(orders)
+            total_price = sum(order.total_price for order in orders)
+            return total_count, total_price
         finally:
             db.close()

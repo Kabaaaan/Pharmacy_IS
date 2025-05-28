@@ -5,7 +5,7 @@ from datetime import date
 from v1.schemas.schemas import *
 from utils.auth import *
 
-from servicies.order_service import RecipeService
+from servicies.order_service import RecipeService, OrderService
 
 router = APIRouter()
 
@@ -86,4 +86,26 @@ async def get_recipe_info_by_id(id: int):
             detail=str(e)
         )
 
-# Получить все заказы (order), получить общую сумму всех заказов и их кол-во, сорторовка по дате
+
+@router.get('/')
+async def get_all_orders(start_date: date):
+    try:
+        orders = OrderService.get_orders_after_date(start_date=start_date)
+        return orders
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+    
+
+@router.get('/summary')
+async def get_orders_summary(start_date: date):
+    try:
+        orders = OrderService.get_order_summary_after_date(start_date=start_date)
+        return orders
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )

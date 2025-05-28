@@ -1,10 +1,9 @@
 from datetime import date, timedelta
 from decimal import Decimal
 from sqlalchemy.orm import Session
-from . import models  # Импорт ваших моделей
+from . import models  
 
 def fill_database(session: Session):
-    # 1. Создаем лекарства (15-20 позиций, 4 рецептурных)
     medicines = [
         models.Medicine(
             name="Аспирин", 
@@ -100,7 +99,6 @@ def fill_database(session: Session):
     session.add_all(medicines)
     session.commit()
 
-    # 2. Создаем роли сотрудников
     roles = [
         models.Role(name="Фармацевт"),
         models.Role(name="Администратор"),
@@ -110,7 +108,6 @@ def fill_database(session: Session):
     session.add_all(roles)
     session.commit()
 
-    # 3. Создаем аптеки (5 штук)
     pharmacies = [
         models.Pharmacy(
             address="ул. Ленина, д. 15", 
@@ -141,9 +138,7 @@ def fill_database(session: Session):
     session.add_all(pharmacies)
     session.commit()
 
-    # 4. Создаем сотрудников
     workers = [
-        # Фармацевты (2 на аптеку)
         models.Worker(
             role_id=roles[0].id, pharmacy_id=pharmacies[0].id,
             FIO="Иванова Анна Петровна", salary=Decimal("45000.00"),
@@ -205,7 +200,6 @@ def fill_database(session: Session):
             home_address="пр. Гагарина, д.15"
         ),
         
-        # Администраторы (1 на аптеку)
         models.Worker(
             role_id=roles[1].id, pharmacy_id=pharmacies[0].id,
             FIO="Козлов Александр Викторович", salary=Decimal("70000.00"),
@@ -237,7 +231,6 @@ def fill_database(session: Session):
             home_address="ул. Зеленая, д.40"
         ),
         
-        # Менеджеры (прикреплены к первой аптеке)
         models.Worker(
             role_id=roles[2].id, pharmacy_id=pharmacies[0].id,
             FIO="Семенов Максим Андреевич", salary=Decimal("85000.00"),
@@ -254,7 +247,6 @@ def fill_database(session: Session):
     session.add_all(workers)
     session.commit()
 
-    # 5. Создаем поставщиков
     suppliers = [
         models.Supplier(
             name="ФармаГрупп", 
@@ -278,23 +270,23 @@ def fill_database(session: Session):
     session.add_all(suppliers)
     session.commit()
 
-    # 6. Распределяем лекарства по поставщикам
+
     availible_medicines = [
-        # Поставщик 1
+
         models.AvailibleMedicineList(supplier_id=suppliers[0].id, medicine_id=medicines[0].id),
         models.AvailibleMedicineList(supplier_id=suppliers[0].id, medicine_id=medicines[1].id),
         models.AvailibleMedicineList(supplier_id=suppliers[0].id, medicine_id=medicines[2].id),
         models.AvailibleMedicineList(supplier_id=suppliers[0].id, medicine_id=medicines[3].id),
         models.AvailibleMedicineList(supplier_id=suppliers[0].id, medicine_id=medicines[6].id),
         
-        # Поставщик 2
+
         models.AvailibleMedicineList(supplier_id=suppliers[1].id, medicine_id=medicines[4].id),
         models.AvailibleMedicineList(supplier_id=suppliers[1].id, medicine_id=medicines[5].id),
         models.AvailibleMedicineList(supplier_id=suppliers[1].id, medicine_id=medicines[7].id),
         models.AvailibleMedicineList(supplier_id=suppliers[1].id, medicine_id=medicines[8].id),
         models.AvailibleMedicineList(supplier_id=suppliers[1].id, medicine_id=medicines[9].id),
         
-        # Поставщик 3
+ 
         models.AvailibleMedicineList(supplier_id=suppliers[2].id, medicine_id=medicines[10].id),
         models.AvailibleMedicineList(supplier_id=suppliers[2].id, medicine_id=medicines[11].id),
         models.AvailibleMedicineList(supplier_id=suppliers[2].id, medicine_id=medicines[12].id),
@@ -304,7 +296,6 @@ def fill_database(session: Session):
     session.add_all(availible_medicines)
     session.commit()
 
-    # 7. Создаем докторов
     doctors = [
         models.Doctor(name="Смирнов Александр Иванович", license_number=12345),
         models.Doctor(name="Ковалева Мария Сергеевна", license_number=23456),
@@ -315,7 +306,6 @@ def fill_database(session: Session):
     session.add_all(doctors)
     session.commit()
 
-    # 8. Создаем клиентов
     clients = [
         models.Client(name="Иванов Алексей"),
         models.Client(name="Сидорова Екатерина"),
@@ -341,61 +331,59 @@ def fill_database(session: Session):
     session.add_all(clients)
     session.commit()
 
-    # 9. Создаем рецепты (7+ штук только для рецептурных лекарств)
     recipes = [
         models.Recipe(
             doctor_id=doctors[0].id, 
             client_id=clients[2].id, 
-            medicine_id=medicines[3].id,  # Амоксициллин
+            medicine_id=medicines[3].id, 
             issue_date=date(2023, 5, 10)
         ),
         models.Recipe(
             doctor_id=doctors[1].id, 
             client_id=clients[5].id, 
-            medicine_id=medicines[4].id,  # Лозартан
+            medicine_id=medicines[4].id,  
             issue_date=date(2023, 6, 15)
         ),
         models.Recipe(
             doctor_id=doctors[2].id, 
             client_id=clients[8].id, 
-            medicine_id=medicines[5].id,  # Метформин
+            medicine_id=medicines[5].id, 
             issue_date=date(2023, 4, 20)
         ),
         models.Recipe(
             doctor_id=doctors[3].id, 
             client_id=clients[12].id, 
-            medicine_id=medicines[6].id,  # Сальбутамол
+            medicine_id=medicines[6].id, 
             issue_date=date(2023, 7, 1)
         ),
         models.Recipe(
             doctor_id=doctors[4].id, 
             client_id=clients[3].id, 
-            medicine_id=medicines[3].id,  # Амоксициллин
+            medicine_id=medicines[3].id,  
             issue_date=date(2023, 5, 25)
         ),
         models.Recipe(
             doctor_id=doctors[0].id, 
             client_id=clients[7].id, 
-            medicine_id=medicines[4].id,  # Лозартан
+            medicine_id=medicines[4].id,  
             issue_date=date(2023, 6, 5)
         ),
         models.Recipe(
             doctor_id=doctors[1].id, 
             client_id=clients[15].id, 
-            medicine_id=medicines[5].id,  # Метформин
+            medicine_id=medicines[5].id,  
             issue_date=date(2023, 7, 10)
         ),
         models.Recipe(
             doctor_id=doctors[2].id, 
             client_id=clients[18].id, 
-            medicine_id=medicines[6].id,  # Сальбутамол
+            medicine_id=medicines[6].id,  
             issue_date=date(2023, 4, 15)
         )
     ]
     session.add_all(recipes)
     session.commit()
 
-    # 10. Типы оплаты
     type_pays = [
         models.TypePay(name="Наличные", additional_info="Оплата наличными в кассе"),
         models.TypePay(name="Карта", additional_info="Безналичная оплата картой"),
@@ -404,7 +392,7 @@ def fill_database(session: Session):
     session.add_all(type_pays)
     session.commit()
 
-    # 11. Создаем поставки и элементы поставок
+
     shipments = [
         models.Shipment(
             supplier_id=suppliers[0].id, 
@@ -434,9 +422,7 @@ def fill_database(session: Session):
     session.add_all(shipments)
     session.commit()
 
-    # Элементы поставок
     shipment_items = [
-        # Поставка 1
         models.ShipmentItems(
             shipment_id=shipments[0].id, 
             medicine_id=medicines[0].id, 
@@ -456,7 +442,6 @@ def fill_database(session: Session):
             best_before_date=date(2024, 5, 20)
         ),
         
-        # Поставка 2
         models.ShipmentItems(
             shipment_id=shipments[1].id, 
             medicine_id=medicines[4].id, 
@@ -476,7 +461,6 @@ def fill_database(session: Session):
             best_before_date=date(2024, 10, 15)
         ),
         
-        # Поставка 3
         models.ShipmentItems(
             shipment_id=shipments[2].id, 
             medicine_id=medicines[10].id, 
@@ -490,7 +474,6 @@ def fill_database(session: Session):
             best_before_date=date(2024, 12, 1)
         ),
         
-        # Поставка 4
         models.ShipmentItems(
             shipment_id=shipments[3].id, 
             medicine_id=medicines[2].id, 
@@ -507,17 +490,15 @@ def fill_database(session: Session):
     session.add_all(shipment_items)
     session.commit()
 
-    # 12. Заполняем склад (WareHouse)
     warehouse_items = [
         models.WareHouse(
             shipment_item_id=item.id, 
-            count=item.count  # Изначально все количество на складе
+            count=item.count  
         ) for item in shipment_items
     ]
     session.add_all(warehouse_items)
     session.commit()
 
-    # 13. Создаем доставки в аптеки
     deliveries = [
         models.Delivery(date=date(2023, 1, 12)),
         models.Delivery(date=date(2023, 2, 18)),
@@ -527,21 +508,15 @@ def fill_database(session: Session):
     session.add_all(deliveries)
     session.commit()
 
-    # 14. Распределяем товары по аптекам (Stock)
-    # Создаем остатки в аптеках на основе доставок
     stocks = []
     delivery_items = []
     
-    # Распределение по аптекам
     for idx, item in enumerate(shipment_items):
-        # Каждую партию распределяем по 2-3 аптекам
         for ph_id in pharmacies[idx % len(pharmacies)].id, pharmacies[(idx+1) % len(pharmacies)].id:
-            # Количество для аптеки (примерно 1/3 от партии)
             quantity = item.count // 3
             if quantity < 10: 
-                quantity = item.count  # Для маленьких партий отдаем все
+                quantity = item.count  
                 
-            # Создаем запись об остатке
             stock = models.Stock(
                 shipment_item_id=item.id,
                 pharmacy_id=ph_id,
@@ -550,7 +525,6 @@ def fill_database(session: Session):
             session.add(stock)
             session.commit()
             
-            # Создаем элемент доставки
             delivery_items.append(
                 models.DeliveryItems(
                     delivery_id=deliveries[idx % len(deliveries)].id,
@@ -559,7 +533,6 @@ def fill_database(session: Session):
                 )
             )
             
-            # Уменьшаем остаток на складе
             wh_item = session.query(models.WareHouse).filter_by(
                 shipment_item_id=item.id
             ).first()
@@ -568,36 +541,30 @@ def fill_database(session: Session):
     session.add_all(delivery_items)
     session.commit()
 
-    # 15. Создаем заказы (20+)
     orders = []
     order_items = []
     
-    # Фармацевты для заказов (первые 10 сотрудников-фармацевтов)
     pharmacists = workers[:10]
     
     for i in range(25):
-        # Случайные данные для заказа
         pharmacist = pharmacists[i % len(pharmacists)]
         client = clients[i % len(clients)]
         pay_type = type_pays[i % len(type_pays)]
         order_date = date(2023, 5, 1) + timedelta(days=i)
         
-        # Создаем заказ
         order = models.Order(
             type_pay_id=pay_type.id,
             pharmacist_id=pharmacist.id,
-            total_price=Decimal("0"),  # Пока 0, посчитаем при добавлении товаров
+            total_price=Decimal("0"), 
             date=order_date
         )
         session.add(order)
-        session.flush()  # Получаем ID до коммита
+        session.flush() 
         
-        # Добавляем товары в заказ (1-3 позиции)
         total_price = Decimal("0")
         items_count = (i % 3) + 1
         
         for j in range(items_count):
-            # Выбираем случайный товар из доступных в аптеке фармацевта
             pharmacy_stocks = session.query(models.Stock).filter_by(
                 pharmacy_id=pharmacist.pharmacy_id
             ).all()
@@ -608,18 +575,14 @@ def fill_database(session: Session):
             stock = pharmacy_stocks[j % len(pharmacy_stocks)]
             medicine = session.query(models.Medicine).get(stock.shipment_item.medicine_id)
             
-            # Количество (1-3 упаковки)
             count = (i + j) % 3 + 1
             if count > stock.count:
                 count = stock.count
                 
-            # Обновляем остаток
             stock.count -= count
             
-            # Проверка на рецепт
             recipe_id = None
             if medicine.need_recipe:
-                # Ищем рецепт для этого лекарства и клиента
                 recipe = session.query(models.Recipe).filter_by(
                     medicine_id=medicine.id,
                     client_id=client.id
@@ -627,7 +590,6 @@ def fill_database(session: Session):
                 if recipe:
                     recipe_id = recipe.id
             
-            # Создаем элемент заказа
             order_item = models.OrderItems(
                 order_id=order.id,
                 medicine_id=medicine.id,
@@ -637,10 +599,8 @@ def fill_database(session: Session):
             )
             order_items.append(order_item)
             
-            # Суммируем стоимость
             total_price += medicine.price * count
         
-        # Обновляем общую сумму заказа
         order.total_price = total_price
     
     session.add_all(order_items)
