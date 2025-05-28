@@ -3,7 +3,9 @@ from datetime import datetime
 from tkinter import messagebox
 from .home import api
 import threading
-
+from openpyxl import Workbook
+import os
+import pathlib
 
 class PrescriptionsPage(ctk.CTkFrame):
     """Страница «Работа с рецептами»"""
@@ -55,38 +57,133 @@ class PrescriptionsPage(ctk.CTkFrame):
         ).pack(side="bottom")
         
     def _create_filters_panel(self):
-        top_frame = ctk.CTkFrame(
+        actions_panel = ctk.CTkFrame(
             self, 
-            fg_color="#252525", 
+            fg_color="#252525",
             corner_radius=14,
             border_width=1,
             border_color="#333333"
         )
-        top_frame.pack(fill="x", padx=20, pady=(0, 20))
+        actions_panel.pack(fill="x", padx=20, pady=(0, 20))
+        
+        header_frame = ctk.CTkFrame(actions_panel, fg_color="transparent")
+        header_frame.pack(fill="x", padx=15, pady=(10, 5))
         
         ctk.CTkLabel(
-            top_frame,
-            text="ДЕЙСТВИЯ",
-            font=ctk.CTkFont(size=12, weight="bold"),
+            header_frame,
+            text="⚡ Действия с рецептами",
+            font=ctk.CTkFont(size=14, weight="bold"),
             text_color="#7a7a7a"
-        ).place(x=15, y=8)
-
-        btn_frame = ctk.CTkFrame(top_frame, fg_color="transparent")
-        btn_frame.pack(expand=True, fill="both", padx=15, pady=15)
+        ).pack(side="left")
         
-        btn_add = ctk.CTkButton(
-            btn_frame,
-            text="➕ Добавить рецепт",
-            width=200,
-            height=40,
+        buttons_frame = ctk.CTkFrame(actions_panel, fg_color="transparent")
+        buttons_frame.pack(fill="x", padx=10, pady=(5, 10))
+        
+        btn_style = {
+            "height": 40,
+            "font": ctk.CTkFont(size=14, weight="bold"),
+            "corner_radius": 8,
+            "border_width": 1
+        }
+        
+        self.btn_add = ctk.CTkButton(
+            buttons_frame,
+            text="➕ Создать новый рецепт",
             fg_color="#2e8b57",
             hover_color="#3cb371",
+            border_color="#3a7a50",
             text_color="white",
-            font=ctk.CTkFont(size=15, weight="bold"),
-            corner_radius=10,
-            command=self.open_add_modal
+            command=self.open_add_modal,
+            **btn_style
         )
-        btn_add.pack(pady=5)
+        self.btn_add.pack(side="left", expand=True, fill="x", padx=(0, 10))
+        
+        self.btn_export = ctk.CTkButton(
+            buttons_frame,
+            text="📁 Экспорт в Excel",
+            fg_color="#4d8af0",
+            hover_color="#3a7ae0",
+            border_color="#3a5f8a",
+            text_color="white",
+            command=self.export_to_excel,
+            **btn_style
+        )
+        self.btn_export.pack(side="left", expand=True, fill="x")
+    
+    def export_to_excel(self):
+        """Экспорт списка рецептов в Excel"""
+        if not self._prescriptions_data:
+            messagebox.showwarning("Предупреждение", "Нет данных для экспорта")
+            return
+            
+        self._show_loading_spinner()
+        
+        def export_data():
+            try:   
+                # Определяем путь к папке reports (на 2 уровня выше текущего файла)
+                current_dir = pathlib.Path(__file__).parent
+                reports_dir = current_dir.parent.parent.parent / "reports"
+                
+                # Создаем папку, если ее нет
+                os.makedirs(reports_dir, exist_ok=True)
+                
+                # Создаем новую книгу Excel
+                wb = Workbook()
+                ws = wb.active
+                ws.title = "Рецепты"
+                
+                # Заголовки столбцов
+                headers = ["ID", "Дата", "Врач", "Пациент", "Препарат"]
+                ws.append(headers)
+                
+                # Заполняем данными
+                for pres in self._prescriptions_data:
+                    ws.append([
+                        pres["id"],
+                        pres["date"].strftime("%d.%m.%Y"),
+                        pres["doctor"],
+                        pres["patient"],
+                        pres["medicine"]
+                    ])
+                
+                # Автоматическая ширина столбцов
+                for col in ws.columns:
+                    max_length = 0
+                    column = col[0].column_letter
+                    for cell in col:
+                        try:
+                            if len(str(cell.value)) > max_length:
+                                max_length = len(str(cell.value))
+                        except:
+                            pass
+                    adjusted_width = (max_length + 2) * 1.2
+                    ws.column_dimensions[column].width = adjusted_width
+                
+                # Сохраняем файл в папку reports
+                filename = f"рецепты_{datetime.now().strftime('%Y-%m-%d_%H-%M')}.xlsx"
+                filepath = reports_dir / filename
+                wb.save(filepath)
+                
+                self.after(100, lambda: messagebox.showinfo(
+                    "Успех", 
+                    f"Данные успешно экспортированы в файл:\n{filepath}"
+                ))
+                
+            except ImportError:
+                self.after(100, lambda: messagebox.showerror(
+                    "Ошибка", 
+                    "Для экспорта требуется установить openpyxl\n"
+                    "Установите его командой: pip install openpyxl"
+                ))
+            except Exception as e:
+                self.after(100, lambda: messagebox.showerror(
+                    "Ошибка", 
+                    f"Не удалось экспортировать данные: {str(e)}"
+                ))
+            finally:
+                self.refresh_prescriptions_list()
+        
+        threading.Thread(target=export_data).start()
 
     def _create_prescriptions_list(self):
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -583,7 +680,6 @@ class PrescriptionsPage(ctk.CTkFrame):
         )
         btn_cancel.pack(side="right", fill="x", expand=True)
 
-        # Центрирование модального окна
         modal.update_idletasks()
         width = modal.winfo_width()
         height = modal.winfo_height()

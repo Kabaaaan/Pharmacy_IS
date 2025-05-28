@@ -8,3 +8,5 @@ python-dotenv
 uvicorn
 fastapi
 Customtkinter
+openpyxl
+threading
