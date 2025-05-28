@@ -7,8 +7,7 @@ class Page3(ctk.CTkFrame):
         
         label = ctk.CTkLabel(self, text="Это Страница 1", font=("Arial", 24))
         label.pack(pady=40)
-        
-        # Кнопка назад с иконкой стрелки
+
         back_btn = ctk.CTkButton(
             self, 
             text="← Назад", 
@@ -21,6 +20,5 @@ class Page3(ctk.CTkFrame):
         )
         back_btn.place(x=20, y=20)
         
-        # Дополнительный контент страницы
         content = ctk.CTkLabel(self, text="Здесь может быть ваш контент для страницы 3")
         content.pack(pady=20)

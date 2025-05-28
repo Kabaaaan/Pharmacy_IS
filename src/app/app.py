@@ -4,25 +4,21 @@ from pages.home import HomePage
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title("Многостраничное приложение")
-        self.geometry("600x400")
+        self.title("Pharmacy Information System")
+        self.geometry("800x700")
         
-        # Контейнер для всех страниц
         self.container = ctk.CTkFrame(self)
         self.container.pack(fill="both", expand=True)
         
-        # Словарь для хранения страниц
         self.pages = {}
         
-        # Инициализация стартовой страницы
         self.show_page("HomePage")
     
     def show_page(self, page_name):
-        # Скрыть текущую страницу
+
         for page in self.pages.values():
             page.pack_forget()
         
-        # Если страница еще не создана, создать ее
         if page_name not in self.pages:
             if page_name == "HomePage":
                 from pages.home import HomePage
@@ -37,5 +33,4 @@ class App(ctk.CTk):
                 from pages.page3 import Page3
                 self.pages[page_name] = Page3(self.container, self)
         
-        # Показать запрошенную страницу
         self.pages[page_name].pack(fill="both", expand=True)
