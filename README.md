@@ -68,10 +68,12 @@ cd Pharmacy_IS
 ### Настройка БД
 1. Создайте файл `.env` в корне проекта:
 ```ini
-DB_HOST=localhost
-DB_USER=pharmacy_user
-DB_PASSWORD=your_password
-DB_DATABASE=pharmacy_db
+DB_HOST='your_host'
+DB_USER='your_user'
+DB_PASSWORD='your_password'
+DB_DATABASE='pharmacy_db'
+DB_PORT = 3306
+DB_CHARSET = 'utf8mb4'
 ```
 
 2. Инициализируйте БД:

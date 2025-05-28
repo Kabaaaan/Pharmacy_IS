@@ -21,7 +21,7 @@ class StatisticsPage(ctk.CTkFrame):
         self._create_filters_panel()
         self._create_summary_panel()
         self._create_orders_list()
-        self._create_back_button()
+        # self._create_back_button()
 
     def _create_header(self):
         header_frame = ctk.CTkFrame(self, fg_color="transparent")

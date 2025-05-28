@@ -2,7 +2,6 @@ import customtkinter as ctk
 from datetime import datetime
 from tkinter import messagebox
 from .home import api
-import threading
 from openpyxl import Workbook
 import os
 import pathlib
@@ -118,72 +117,69 @@ class PrescriptionsPage(ctk.CTkFrame):
             
         self._show_loading_spinner()
         
-        def export_data():
-            try:   
-                # Определяем путь к папке reports (на 2 уровня выше текущего файла)
-                current_dir = pathlib.Path(__file__).parent
-                reports_dir = current_dir.parent.parent.parent / "reports"
-                
-                # Создаем папку, если ее нет
-                os.makedirs(reports_dir, exist_ok=True)
-                
-                # Создаем новую книгу Excel
-                wb = Workbook()
-                ws = wb.active
-                ws.title = "Рецепты"
-                
-                # Заголовки столбцов
-                headers = ["ID", "Дата", "Врач", "Пациент", "Препарат"]
-                ws.append(headers)
-                
-                # Заполняем данными
-                for pres in self._prescriptions_data:
-                    ws.append([
-                        pres["id"],
-                        pres["date"].strftime("%d.%m.%Y"),
-                        pres["doctor"],
-                        pres["patient"],
-                        pres["medicine"]
-                    ])
-                
-                # Автоматическая ширина столбцов
-                for col in ws.columns:
-                    max_length = 0
-                    column = col[0].column_letter
-                    for cell in col:
-                        try:
-                            if len(str(cell.value)) > max_length:
-                                max_length = len(str(cell.value))
-                        except:
-                            pass
-                    adjusted_width = (max_length + 2) * 1.2
-                    ws.column_dimensions[column].width = adjusted_width
-                
-                # Сохраняем файл в папку reports
-                filename = f"рецепты_{datetime.now().strftime('%Y-%m-%d_%H-%M')}.xlsx"
-                filepath = reports_dir / filename
-                wb.save(filepath)
-                
-                self.after(100, lambda: messagebox.showinfo(
-                    "Успех", 
-                    f"Данные успешно экспортированы в файл:\n{filepath}"
-                ))
-                
-            except ImportError:
-                self.after(100, lambda: messagebox.showerror(
-                    "Ошибка", 
-                    "Для экспорта требуется установить openpyxl\n"
-                    "Установите его командой: pip install openpyxl"
-                ))
-            except Exception as e:
-                self.after(100, lambda: messagebox.showerror(
-                    "Ошибка", 
-                    f"Не удалось экспортировать данные: {str(e)}"
-                ))
-            finally:
-                self.refresh_prescriptions_list()
-        
-        threading.Thread(target=export_data).start()
+        try:   
+            # Определяем путь к папке reports (на 2 уровня выше текущего файла)
+            current_dir = pathlib.Path(__file__).parent
+            reports_dir = current_dir.parent.parent.parent / "reports"
+            
+            # Создаем папку, если ее нет
+            os.makedirs(reports_dir, exist_ok=True)
+            
+            # Создаем новую книгу Excel
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "Рецепты"
+            
+            # Заголовки столбцов
+            headers = ["ID", "Дата", "Врач", "Пациент", "Препарат"]
+            ws.append(headers)
+            
+            # Заполняем данными
+            for pres in self._prescriptions_data:
+                ws.append([
+                    pres["id"],
+                    pres["date"].strftime("%d.%m.%Y"),
+                    pres["doctor"],
+                    pres["patient"],
+                    pres["medicine"]
+                ])
+            
+            # Автоматическая ширина столбцов
+            for col in ws.columns:
+                max_length = 0
+                column = col[0].column_letter
+                for cell in col:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = (max_length + 2) * 1.2
+                ws.column_dimensions[column].width = adjusted_width
+            
+            # Сохраняем файл в папку reports
+            filename = f"рецепты_{datetime.now().strftime('%Y-%m-%d_%H-%M')}.xlsx"
+            filepath = reports_dir / filename
+            wb.save(filepath)
+            
+            messagebox.showinfo(
+                "Успех", 
+                f"Данные успешно экспортированы в файл:\n{filepath}"
+            )
+            
+        except ImportError:
+            messagebox.showerror(
+                "Ошибка", 
+                "Для экспорта требуется установить openpyxl\n"
+                "Установите его командой: pip install openpyxl"
+            )
+        except Exception as e:
+            messagebox.showerror(
+                "Ошибка", 
+                f"Не удалось экспортировать данные: {str(e)}"
+            )
+        finally:
+            self.refresh_prescriptions_list()
 
     def _create_prescriptions_list(self):
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -221,19 +217,16 @@ class PrescriptionsPage(ctk.CTkFrame):
 
     def load_medicines(self):
         """Загружает список лекарств из API"""
-        def fetch_data():
-            try:
-                response = api.get(endpoint='medicine')
-                
-                if response and isinstance(response, list):
-                    self._medicines_list = [med["name"] for med in response]
-                    self._medicines_dict = {med["name"]: med["id"] for med in response}
-                else:
-                    self.after(100, lambda: messagebox.showwarning("Предупреждение", "Не удалось загрузить список лекарств"))
-            except Exception as e:
-                self.after(100, lambda: messagebox.showerror("Ошибка", f"Ошибка при загрузке лекарств: {str(e)}"))
-        
-        threading.Thread(target=fetch_data).start()
+        try:
+            response = api.get(endpoint='medicine')
+            
+            if response and isinstance(response, list):
+                self._medicines_list = [med["name"] for med in response]
+                self._medicines_dict = {med["name"]: med["id"] for med in response}
+            else:
+                messagebox.showwarning("Предупреждение", "Не удалось загрузить список лекарств")
+        except Exception as e:
+            messagebox.showerror("Ошибка", f"Ошибка при загрузке лекарств: {str(e)}")
 
     def refresh_prescriptions_list(self):
         """Загружает и отображает список рецептов"""
@@ -243,38 +236,35 @@ class PrescriptionsPage(ctk.CTkFrame):
         self.loading = True
         self._show_loading_spinner()
         
-        def fetch_data():
-            try:
-                response = api.get(endpoint='order/recipe/date')
+        try:
+            response = api.get(endpoint='order/recipe/date')
+            
+            if response and isinstance(response, list):
+                processed = []
+                for pres in response:
+                    try:
+                        processed.append({
+                            "id": pres["id"],
+                            "doctor": pres["doctor_name"],
+                            "patient": pres["client_name"],
+                            "medicine": pres["medicine_name"],
+                            "date": datetime.strptime(pres["issue_date"], "%Y-%m-%d")
+                        })
+                    except Exception:
+                        continue
                 
-                if response and isinstance(response, list):
-                    processed = []
-                    for pres in response:
-                        try:
-                            processed.append({
-                                "id": pres["id"],
-                                "doctor": pres["doctor_name"],
-                                "patient": pres["client_name"],
-                                "medicine": pres["medicine_name"],
-                                "date": datetime.strptime(pres["issue_date"], "%Y-%m-%d")
-                            })
-                        except Exception:
-                            continue
-                    
-                    self._prescriptions_data = sorted(
-                        processed, 
-                        key=lambda p: p["date"], 
-                        reverse=True
-                    )
-                    self.after(100, self._update_prescriptions_list)
-                else:
-                    self.after(100, self._handle_no_data)
-            except Exception as e:
-                self.after(100, lambda: self._handle_error(f"Ошибка при загрузке рецептов: {str(e)}"))
-            finally:
-                self.loading = False
-        
-        threading.Thread(target=fetch_data).start()
+                self._prescriptions_data = sorted(
+                    processed, 
+                    key=lambda p: p["date"], 
+                    reverse=True
+                )
+                self._update_prescriptions_list()
+            else:
+                self._handle_no_data()
+        except Exception as e:
+            self._handle_error(f"Ошибка при загрузке рецептов: {str(e)}")
+        finally:
+            self.loading = False
 
     def _update_prescriptions_list(self):
         """Обновляет список рецептов на основе загруженных данных"""
@@ -433,20 +423,17 @@ class PrescriptionsPage(ctk.CTkFrame):
 
         self._show_loading_spinner()
         
-        def delete_request():
-            try:
-                response = api.delete(endpoint=f'order/recipe/{prescription["id"]}')
-                if response:
-                    self.after(100, lambda: self._handle_delete_success())
-                else:
-                    self.after(100, lambda: messagebox.showerror("Ошибка", "Не удалось удалить рецепт"))
-            except Exception as e:
-                self.after(100, lambda: messagebox.showerror("Ошибка", f"Ошибка при удалении: {str(e)}"))
-            finally:
-                self.after(100, lambda: self.scrollable_frame._parent_canvas.yview_moveto(0))
-                self.after(100, self.refresh_prescriptions_list)
-        
-        threading.Thread(target=delete_request).start()
+        try:
+            response = api.delete(endpoint=f'order/recipe/{prescription["id"]}')
+            if response:
+                self._handle_delete_success()
+            else:
+                messagebox.showerror("Ошибка", "Не удалось удалить рецепт")
+        except Exception as e:
+            messagebox.showerror("Ошибка", f"Ошибка при удалении: {str(e)}")
+        finally:
+            self.scrollable_frame._parent_canvas.yview_moveto(0)
+            self.refresh_prescriptions_list()
 
     def _handle_delete_success(self):
         """Обрабатывает успешное удаление рецепта"""
@@ -624,35 +611,31 @@ class PrescriptionsPage(ctk.CTkFrame):
                 "issue_date": dt.date().isoformat()
             }
 
-            def create_request():
-                try:
-                    modal.destroy()
-                    
-                    self._show_loading_spinner()
-                    
-                    headers = {
-                        "Content-Type": "application/json",
-                        "Accept": "application/json"
-                    }
-                    
-                    response = api.post(
-                        endpoint='order/recipe', 
-                        json_data=prescription_data,
-                        headers=headers
-                    )
-                    
-                    if response and response.get("id"):
-                        messagebox.showinfo("Успех", "Рецепт успешно создан")
-                        self.refresh_prescriptions_list()
-                    else:
-                        error_msg = response.get("detail", "Не удалось создать рецепт")
-                        self.after(100, lambda: messagebox.showerror("Ошибка", error_msg))
-                except Exception as e:
-                    self.after(100, lambda: messagebox.showerror("Ошибка", f"Ошибка при создании рецепта: {str(e)}"))
-                finally:
-                    self._hide_loading_spinner()
+            modal.destroy()
+            self._show_loading_spinner()
             
-            threading.Thread(target=create_request).start()
+            try:
+                headers = {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                }
+                
+                response = api.post(
+                    endpoint='order/recipe', 
+                    json_data=prescription_data,
+                    headers=headers
+                )
+                
+                if response and response.get("id"):
+                    messagebox.showinfo("Успех", "Рецепт успешно создан")
+                    self.refresh_prescriptions_list()
+                else:
+                    error_msg = response.get("detail", "Не удалось создать рецепт")
+                    messagebox.showerror("Ошибка", error_msg)
+            except Exception as e:
+                messagebox.showerror("Ошибка", f"Ошибка при создании рецепта: {str(e)}")
+            finally:
+                self._hide_loading_spinner()
 
         btn_confirm = ctk.CTkButton(
             btn_frame,

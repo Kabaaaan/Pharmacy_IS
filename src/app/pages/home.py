@@ -7,12 +7,11 @@ class HomePage(ctk.CTkFrame):
     """Главная страница"""
 
     def __init__(self, parent, controller):
-        super().__init__(parent, fg_color="#1a1a1a")  # Тот же фон, что и у других страниц
+        super().__init__(parent, fg_color="#1a1a1a") 
         self.controller = controller
         self._setup_ui()
 
     def _setup_ui(self):
-        # Заголовок с красивым оформлением
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
         header_frame.pack(pady=(40, 30), fill="x", padx=20)
         
@@ -23,7 +22,6 @@ class HomePage(ctk.CTkFrame):
             text_color="#ffffff"
         ).pack(side="bottom")
 
-        # Основная область с кнопками
         buttons_frame = ctk.CTkFrame(
             self,
             fg_color="transparent",
@@ -31,7 +29,6 @@ class HomePage(ctk.CTkFrame):
         )
         buttons_frame.pack(expand=True, fill="both", padx=50, pady=20)
 
-        # Стили для кнопок
         btn_style = {
             "width": 280,
             "height": 50,
@@ -41,7 +38,6 @@ class HomePage(ctk.CTkFrame):
             "border_color": "#444444"
         }
 
-        # Кнопка "Работа с рецептами"
         self.btn_prescriptions = ctk.CTkButton(
             buttons_frame,
             text="📋 Работа с рецептами",
@@ -53,7 +49,6 @@ class HomePage(ctk.CTkFrame):
         )
         self.btn_prescriptions.pack(pady=(0, 20), fill="x")
 
-        # Кнопка "Работа с сотрудниками"
         self.btn_employees = ctk.CTkButton(
             buttons_frame,
             text="👥 Работа с сотрудниками",
@@ -65,7 +60,6 @@ class HomePage(ctk.CTkFrame):
         )
         self.btn_employees.pack(pady=(0, 20), fill="x")
 
-        # Кнопка "Статистика прибыли сети"
         self.btn_statistics = ctk.CTkButton(
             buttons_frame,
             text="📊 Статистика прибыли сети",
@@ -77,7 +71,6 @@ class HomePage(ctk.CTkFrame):
         )
         self.btn_statistics.pack(pady=(0, 20), fill="x")
 
-        # Декоративный элемент внизу
         footer_frame = ctk.CTkFrame(self, fg_color="transparent", height=20)
         footer_frame.pack(side="bottom", fill="x", pady=(0, 10))
         ctk.CTkLabel(
