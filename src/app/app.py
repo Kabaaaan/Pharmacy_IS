@@ -1,14 +1,13 @@
 import customtkinter as ctk
 from pages.home import HomePage
 
-
 class App(ctk.CTk):
 
     def __init__(self):
         super().__init__()
         self.title("Сеть аптек — Панель управления")
         self.geometry("900x700")
-        self.resizable(False, False)
+        self.resizable(True, True)
 
         # Установка глобальной темы «Dark»
         ctk.set_appearance_mode("Dark")

@@ -1,229 +1,362 @@
-# src/app/pages/statistics.py
-
 import customtkinter as ctk
-from datetime import datetime
+from datetime import datetime, date
 from tkinter import messagebox
+from .home import api
+import threading
+import time
 
 
 class StatisticsPage(ctk.CTkFrame):
-    """
-    Страница «Статистика прибыли сети по заказам» (тёмная тема).
-    - Фильтр «Дата с»
-    - Кнопка «Применить» и «Сбросить»
-    - Сводка (orders, revenue)
-    - Список заказов
-    """
+    """Страница статистики прибыли сети по заказам."""
 
     def __init__(self, parent, controller):
-        super().__init__(parent, fg_color="#2B2B2B")
+        super().__init__(parent, fg_color="#1a1a1a")
         self.controller = controller
+        self._orders_data = []
+        self.loading_spinner = None
+        self._setup_ui()
+        self.load_orders_data()
 
-        # ====== Заглушечные данные «Заказы» ======
-        # Поля: order_id, employee_id, date, amount
-        self._orders_data = [
-            {"order_id": 101, "employee_id": 1, "date": datetime(
-                2023, 7,  1, 11, 30), "amount": 1500.0},
-            {"order_id": 102, "employee_id": 2, "date": datetime(
-                2023, 7,  5, 13, 45), "amount": 2570.5},
-            {"order_id": 103, "employee_id": 3, "date": datetime(
-                2023, 8, 10, 15, 10), "amount": 980.0},
-            {"order_id": 104, "employee_id": 1, "date": datetime(
-                2023, 8, 20, 9, 5),   "amount": 1120.75},
-            {"order_id": 105, "employee_id": 2, "date": datetime(
-                2023, 9,  1, 10, 20), "amount": 1750.0},
-            {"order_id": 106, "employee_id": 3, "date": datetime(
-                2023, 9, 15, 14, 55), "amount": 620.0},
-            {"order_id": 107, "employee_id": 1, "date": datetime(
-                2023, 9, 25, 10, 15), "amount": 2330.9},
-        ]
+    def _setup_ui(self):
+        self._create_header()
+        self._create_filters_panel()
+        self._create_summary_panel()
+        self._create_orders_list()
+        self._create_back_button()
 
-        # ====== Дизайн страницы ======
-
-        # Заголовок
-        self.label_title = ctk.CTkLabel(
-            self,
+    def _create_header(self):
+        header_frame = ctk.CTkFrame(self, fg_color="transparent")
+        header_frame.pack(pady=(20, 15), fill="x", padx=20)
+        
+        
+        ctk.CTkLabel(
+            header_frame,
             text="Статистика прибыли сети",
-            font=ctk.CTkFont(size=22, weight="bold"),
-            text_color="white"
+            font=ctk.CTkFont(size=26, weight="bold", family="Arial"),
+            text_color="#ffffff"
+        ).pack(side="bottom")
+        
+
+    def _create_filters_panel(self):
+        top_frame = ctk.CTkFrame(
+            self, 
+            fg_color="#252525", 
+            corner_radius=14,
+            border_width=1,
+            border_color="#333333",
+            height=160  # Указываем конкретную высоту в пикселях
         )
-        self.label_title.pack(pady=(20, 10))
+        top_frame.pack(fill="x", padx=20, pady=(25, 25))
 
-        # Верхняя панель: фильтр «Дата с», кнопки «Применить» и «Сбросить»
-        top_frame = ctk.CTkFrame(self, fg_color="#3A3A3A", corner_radius=8)
-        top_frame.pack(fill="x", padx=20, pady=(0, 10))
-
-        lbl_filter = ctk.CTkLabel(
+        ctk.CTkLabel(
             top_frame,
-            text="Показать заказы с даты (дд.мм.ГГГГ):",
-            font=ctk.CTkFont(size=14),
-            text_color="white"
-        )
-        lbl_filter.pack(side="left", padx=(15, 5), pady=10)
+            text="Показать заказы с даты:",
+            font=ctk.CTkFont(size=15),
+            text_color="#d6d6d6"
+        ).pack(side="left", padx=(15, 5), pady=(15, 15))
 
         self.entry_filter_date = ctk.CTkEntry(
             top_frame,
             placeholder_text="дд.мм.ГГГГ",
-            width=120
+            width=120,
+            fg_color="#333333",
+            border_color="#444444",
+            corner_radius=8,
+            font=ctk.CTkFont(size=14)
         )
-        # Оставляем пустым по умолчанию
         self.entry_filter_date.pack(side="left", padx=(0, 5), pady=10)
 
-        self.btn_apply_filter = ctk.CTkButton(
-            top_frame,
+        buttons_frame = ctk.CTkFrame(top_frame, fg_color="transparent")
+        buttons_frame.pack(side="left", padx=(10, 0), pady=10)
+        
+        ctk.CTkButton(
+            buttons_frame,
             text="Применить",
-            width=100, height=30,
-            fg_color="#555555",
-            hover_color="#666666",
+            width=110,
+            height=32,
+            fg_color="#4d8af0",
+            hover_color="#3a7ae0",
             text_color="white",
-            font=ctk.CTkFont(size=12),
+            font=ctk.CTkFont(size=14, weight="bold"),
+            corner_radius=8,
             command=self.refresh_orders_list
-        )
-        self.btn_apply_filter.pack(side="left", padx=(0, 10), pady=10)
+        ).pack(side="left", padx=(0, 8))
 
-        self.btn_reset_filter = ctk.CTkButton(
-            top_frame,
+        ctk.CTkButton(
+            buttons_frame,
             text="Сбросить",
-            width=100, height=30,
-            fg_color="#555555",
-            hover_color="#666666",
-            text_color="white",
-            font=ctk.CTkFont(size=12),
-            command=self.reset_filter
-        )
-        self.btn_reset_filter.pack(side="left", padx=(0, 15), pady=10)
-
-        # ====== Блок «Сводка» ======
-        self.summary_frame = ctk.CTkFrame(
-            self, fg_color="#3A3A3A", corner_radius=8)
-        self.summary_frame.pack(fill="x", padx=20, pady=(0, 15))
-
-        self.lbl_orders = ctk.CTkLabel(
-            self.summary_frame,
-            text="Всего заказов: 0",
-            font=ctk.CTkFont(size=16),
-            text_color="white"
-        )
-        self.lbl_orders.pack(anchor="w", padx=15, pady=(10, 5))
-
-        self.lbl_revenue = ctk.CTkLabel(
-            self.summary_frame,
-            text="Общая выручка: 0.00 ₽",
-            font=ctk.CTkFont(size=16),
-            text_color="white"
-        )
-        self.lbl_revenue.pack(anchor="w", padx=15, pady=(0, 10))
-
-        # Метка «Последние заказы»
-        self.lbl_recent = ctk.CTkLabel(
-            self,
-            text="Последние заказы:",
-            font=ctk.CTkFont(size=18, weight="bold"),
-            text_color="white"
-        )
-        self.lbl_recent.pack(pady=(0, 10))
-
-        # Прокручиваемый фрейм для списка заказов
-        self.scrollable_frame = ctk.CTkScrollableFrame(
-            self, width=800, height=400, corner_radius=8, fg_color="#2B2B2B"
-        )
-        self.scrollable_frame.pack(
-            padx=20, pady=(0, 15), fill="both", expand=True)
-
-        # Кнопка «Назад»
-        self.btn_back = ctk.CTkButton(
-            self,
-            text="← Назад",
-            width=100, height=36,
+            width=100,
+            height=32,
             fg_color="#555555",
             hover_color="#666666",
             text_color="white",
             font=ctk.CTkFont(size=14),
-            command=lambda: controller.show_page("HomePage")
-        )
-        self.btn_back.place(x=20, y=20)
+            corner_radius=8,
+            command=self.reset_filter
+        ).pack(side="left")
 
-        # Первоначальное заполнение
-        self.refresh_orders_list()
+    def _create_summary_panel(self):
+        self.summary_frame = ctk.CTkFrame(
+            self, 
+            fg_color="#252525", 
+            corner_radius=14,
+            border_width=1,
+            border_color="#333333"
+        )
+        self.summary_frame.pack(fill="x", padx=20, pady=(0, 20))
+        
+        # Заголовок панели статистики
+        ctk.CTkLabel(
+            self.summary_frame,
+            text="ОБЩАЯ СТАТИСТИКА",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            text_color="#7a7a7a"
+        ).place(x=15, y=8)
+
+        stats_frame = ctk.CTkFrame(self.summary_frame, fg_color="transparent")
+        stats_frame.pack(pady=(15, 10), padx=15, fill="x")
+        
+        self.lbl_orders = ctk.CTkLabel(
+            stats_frame,
+            text="📦 0 заказов",
+            font=ctk.CTkFont(size=16, weight="bold"),
+            text_color="#4d8af0",
+            anchor="w"
+        )
+        self.lbl_orders.pack(fill="x", pady=(0, 5))
+
+        self.lbl_revenue = ctk.CTkLabel(
+            stats_frame,
+            text="💰 0.00 ₽",
+            font=ctk.CTkFont(size=16, weight="bold"),
+            text_color="#4d8af0",
+            anchor="w"
+        )
+        self.lbl_revenue.pack(fill="x")
+
+    def _create_orders_list(self):
+        header_frame = ctk.CTkFrame(self, fg_color="transparent")
+        header_frame.pack(pady=(0, 10), fill="x", padx=20)
+        
+        ctk.CTkLabel(
+            header_frame,
+            text="ИСТОРИЯ ЗАКАЗОВ",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            text_color="#7a7a7a"
+        ).pack(side="left")
+
+        self.scrollable_frame = ctk.CTkScrollableFrame(
+            self, 
+            width=800, 
+            height=400, 
+            corner_radius=14, 
+            fg_color="#252525",
+            border_width=1,
+            border_color="#333333"
+        )
+        self.scrollable_frame.pack(padx=20, pady=(0, 20), fill="both", expand=True)
+
+    def _create_back_button(self):
+        ctk.CTkButton(
+            self,
+            text="← Назад",
+            width=100,
+            height=36,
+            fg_color="#333333",
+            hover_color="#444444",
+            border_color="#555555",
+            border_width=1,
+            text_color="white",
+            font=ctk.CTkFont(size=14, weight="bold"),
+            corner_radius=10,
+            command=lambda: self.controller.show_page("HomePage")
+        ).place(x=20, y=20)
 
     def parse_date(self, date_str):
-        """
-        Парсит строку «дд.мм.ГГГГ» в datetime. Если некорректно — возвращает None.
-        """
         try:
             return datetime.strptime(date_str, "%d.%m.%Y")
-        except Exception:
+        except ValueError:
             return None
 
     def reset_filter(self):
-        """
-        Сбрасывает фильтр: очищает поле и показывает все заказы.
-        """
         self.entry_filter_date.delete(0, "end")
-        self.refresh_orders_list()
+        self.load_orders_data()
 
-    def refresh_orders_list(self):
-        """
-        Перерисовывает сводку и список заказов с учётом фильтра «Дата с».
-        """
-        # Чищаем список внутри scrollable_frame
+    def load_orders_data(self, start_date: date = None):
+        self._show_loading_spinner()
+
+        def fetch_data():
+            try:
+                params = {"start_date": start_date.isoformat()} if start_date else {}
+                response = api.get(endpoint='order', params=params)
+
+                if response and isinstance(response, list):
+                    self._orders_data = response
+                    self.after(100, lambda: self._update_ui(start_date))
+                else:
+                    self.after(100, self._handle_no_data)
+            except Exception as e:
+                self.after(100, lambda: self._handle_error(f"Ошибка при загрузке данных: {str(e)}"))
+
+        threading.Thread(target=fetch_data).start()
+
+    def _update_ui(self, filter_date):
+        self._clear_orders_list()
+
+        processed_orders = self._process_orders_data()
+        filtered_orders = self._filter_orders(processed_orders, filter_date)
+
+        self._update_summary(filtered_orders)
+        self._display_orders(filtered_orders)
+
+        self._hide_loading_spinner()
+
+    def _process_orders_data(self):
+        processed = []
+        for order in self._orders_data:
+            try:
+                order_copy = order.copy()
+                if isinstance(order_copy['date'], str):
+                    order_copy['date'] = datetime.strptime(order_copy['date'], '%Y-%m-%d')
+                processed.append(order_copy)
+            except Exception:
+                continue
+        return processed
+
+    def _filter_orders(self, orders, filter_date):
+        if filter_date:
+            return [o for o in orders if o['date'].date() >= filter_date]
+        return orders
+
+    def _clear_orders_list(self):
         for widget in self.scrollable_frame.winfo_children():
             widget.destroy()
 
-        filter_text = self.entry_filter_date.get().strip()
-        if filter_text:
-            dt = self.parse_date(filter_text)
-            if dt is None:
-                messagebox.showerror(
-                    "Ошибка", "Некорректный формат даты. Используйте дд.мм.ГГГГ")
-                return
-            filtered = [o for o in self._orders_data if o["date"].date()
-                        >= dt.date()]
-        else:
-            filtered = self._orders_data.copy()
+    def _update_summary(self, orders):
+        total_orders = len(orders)
+        total_revenue = sum(float(o['total_price']) for o in orders)
 
-        # Считаем сводку на отфильтрованных данных
-        total_orders = len(filtered)
-        total_revenue = sum(o["amount"] for o in filtered)
+        self.lbl_orders.configure(text=f"📦 {total_orders} заказов")
+        self.lbl_revenue.configure(text=f"💰 {total_revenue:,.2f} ₽")
 
-        self.lbl_orders.configure(text=f"Всего заказов: {total_orders}")
-        self.lbl_revenue.configure(
-            text=f"Общая выручка: {total_revenue:,.2f} ₽")
-
-        if not filtered:
-            lbl_empty = ctk.CTkLabel(
-                self.scrollable_frame,
-                text="Заказы не найдены.",
-                font=ctk.CTkFont(size=14),
-                text_color="white"
-            )
-            lbl_empty.pack(pady=20)
+    def _display_orders(self, orders):
+        if not orders:
+            self._show_no_orders_message()
             return
 
-        # Сортируем по дате (новые первыми)
-        sorted_orders = sorted(filtered, key=lambda o: o["date"], reverse=True)
+        for order in sorted(orders, key=lambda o: o['date'], reverse=True):
+            self._create_order_widget(order)
 
-        for order in sorted_orders:
-            container = ctk.CTkFrame(
-                self.scrollable_frame,
-                fg_color="#3A3A3A",
-                corner_radius=6,
-                border_width=1,
-                border_color="#555555"
-            )
-            container.pack(fill="x", padx=15, pady=8)
+    def _show_no_orders_message(self):
+        empty_frame = ctk.CTkFrame(
+            self.scrollable_frame,
+            fg_color="#252525",
+            corner_radius=12,
+            height=100
+        )
+        empty_frame.pack(fill="x", padx=10, pady=10)
+        
+        ctk.CTkLabel(
+            empty_frame,
+            text="📭 Нет данных о заказах",
+            font=ctk.CTkFont(size=16),
+            text_color="#777777"
+        ).place(relx=0.5, rely=0.5, anchor="center")
 
-            txt = (
-                f"Заказ ID: {order['order_id']}    |    "
-                f"Сотрудник ID: {order['employee_id']}    |    "
-                f"Дата: {order['date'].strftime('%d.%m.%Y')}    |    "
-                f"Сумма: {order['amount']:,.2f} ₽"
-            )
-            lbl = ctk.CTkLabel(
-                container,
-                text=txt,
-                font=ctk.CTkFont(size=13),
-                text_color="white",
-                wraplength=700,
-                anchor="w"
-            )
-            lbl.pack(fill="x", padx=10, pady=8)
+    def _create_order_widget(self, order):
+        container = ctk.CTkFrame(
+            self.scrollable_frame,
+            fg_color="#333333",
+            corner_radius=12,
+            border_width=1,
+            border_color="#444444"
+        )
+        container.pack(fill="x", padx=10, pady=8)
+        
+        # Верхняя строка с основной информацией
+        top_frame = ctk.CTkFrame(container, fg_color="transparent")
+        top_frame.pack(fill="x", padx=10, pady=(10, 0))
+        
+        ctk.CTkLabel(
+            top_frame,
+            text=f"🆔 Заказ #{order['id']}",
+            font=ctk.CTkFont(size=14, weight="bold"),
+            text_color="#4d8af0",
+            anchor="w"
+        ).pack(side="left", fill="x", expand=True)
+        
+        ctk.CTkLabel(
+            top_frame,
+            text=f"📅 {order['date'].strftime('%d.%m.%Y')}",
+            font=ctk.CTkFont(size=14),
+            text_color="#aaaaaa",
+            anchor="e"
+        ).pack(side="right")
+        
+        # Нижняя строка с дополнительной информацией
+        bottom_frame = ctk.CTkFrame(container, fg_color="transparent")
+        bottom_frame.pack(fill="x", padx=10, pady=(0, 10))
+        
+        ctk.CTkLabel(
+            bottom_frame,
+            text=f"👤 Сотрудник ID: {order['pharmacist_id']}",
+            font=ctk.CTkFont(size=13),
+            text_color="#cccccc",
+            anchor="w"
+        ).pack(side="left", fill="x", expand=True)
+        
+        ctk.CTkLabel(
+            bottom_frame,
+            text=f"💰 {float(order['total_price']):,.2f} ₽",
+            font=ctk.CTkFont(size=14, weight="bold"),
+            text_color="#4d8af0",
+            anchor="e"
+        ).pack(side="right")
+
+    def _handle_no_data(self):
+        self._orders_data = []
+        self._update_ui(None)
+        messagebox.showwarning("Предупреждение", "Нет данных о заказах")
+
+    def _handle_error(self, message):
+        self._orders_data = []
+        self._update_ui(None)
+        messagebox.showerror("Ошибка", message)
+
+    def refresh_orders_list(self):
+        filter_text = self.entry_filter_date.get().strip()
+
+        if not filter_text:
+            self.load_orders_data()
+            return
+
+        dt = self.parse_date(filter_text)
+        if not dt:
+            messagebox.showerror("Ошибка", "Некорректный формат даты. Используйте дд.мм.ГГГГ")
+            return
+
+        self.load_orders_data(start_date=dt.date())
+
+    def _show_loading_spinner(self):
+        self._clear_orders_list()
+        
+        spinner_frame = ctk.CTkFrame(
+            self.scrollable_frame,
+            fg_color="#252525",
+            corner_radius=12,
+            height=100
+        )
+        spinner_frame.pack(fill="x", padx=10, pady=10)
+        
+        self.loading_spinner = ctk.CTkLabel(
+            spinner_frame,
+            text="⏳ Загрузка данных...",
+            font=ctk.CTkFont(size=16, weight="bold"),
+            text_color="#7a7a7a"
+        )
+        self.loading_spinner.place(relx=0.5, rely=0.5, anchor="center")
+
+    def _hide_loading_spinner(self):
+        if self.loading_spinner:
+            self.loading_spinner.destroy()
+            self.loading_spinner = None

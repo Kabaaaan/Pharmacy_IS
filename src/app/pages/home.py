@@ -1,7 +1,7 @@
-# src/app/pages/home.py
-
 import customtkinter as ctk
+from .api_client import APIClient
 
+api = APIClient(base_url='http://localhost:8000/api/v1')
 
 class HomePage(ctk.CTkFrame):
     """

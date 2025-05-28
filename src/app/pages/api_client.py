@@ -62,7 +62,7 @@ class APIClient:
                 return response.text
                 
         except requests.exceptions.RequestException as e:
-            self.logger.error(f"Ошибка при выполнении запроса {method} {url}: {str(e)}")
+            print(str(e))
             return None
     
     def get(self, endpoint: str, params: Optional[Dict[str, Any]] = None, headers: Optional[Dict[str, str]] = None):
