@@ -86,3 +86,4 @@ async def get_recipe_info_by_id(id: int):
             detail=str(e)
         )
 
+# Получить все заказы (order), получить общую сумму всех заказов и их кол-во, сорторовка по дате

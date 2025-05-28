@@ -1,4 +1,5 @@
 from .session import engine, SessionLocal
+from fill_test_data import fill_database
 from .models import Base
 
 def init_db():
@@ -12,3 +13,6 @@ def get_db():
         yield db
     finally:
         db.close()
+
+if __name__ == "__main__":
+    init_db()

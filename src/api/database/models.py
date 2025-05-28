@@ -185,3 +185,5 @@ class DeliveryItems(Base):
     
     delivery = relationship("Delivery", back_populates="items")
     stock = relationship("Stock")
+
+
