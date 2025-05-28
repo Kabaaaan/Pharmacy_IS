@@ -6,7 +6,7 @@
 
 Система состоит из:
 - **Backend API** (FastAPI + SQLAlchemy)
-- **Desktop приложение** (PyQt5)
+- **Desktop приложение** (Customtkinter)
 - **База данных** (MySQL)
 
 Основные функции:
