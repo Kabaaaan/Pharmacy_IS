@@ -147,3 +147,15 @@ class WorkerContactInfoUpdate(BaseModel):
 
 class WorkerPharmacyUpdate(BaseModel):
     new_pharmacy_id: int
+
+
+# --------------------------
+# Recipe Related Models
+# --------------------------
+
+class RecipeCreate(BaseModel):
+    doctor_name: str
+    license_number: int
+    client_name: str
+    medicine_id: int
+    issue_date: date
