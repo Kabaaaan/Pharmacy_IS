@@ -56,7 +56,7 @@ class StatisticsPage(ctk.CTkFrame):
 
         self.entry_filter_date = ctk.CTkEntry(
             top_frame,
-            placeholder_text="дд.мм.ГГГГ",
+            placeholder_text="дд.мм.гггг",
             width=120,
             fg_color="#333333",
             border_color="#444444",
@@ -328,7 +328,7 @@ class StatisticsPage(ctk.CTkFrame):
 
         dt = self.parse_date(filter_text)
         if not dt:
-            messagebox.showerror("Ошибка", "Некорректный формат даты. Используйте дд.мм.ГГГГ")
+            messagebox.showerror("Ошибка", "Некорректный формат даты. Используйте дд.мм.гггг")
             return
 
         self.load_orders_data(start_date=dt.date())

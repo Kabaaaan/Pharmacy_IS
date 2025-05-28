@@ -123,7 +123,28 @@ class RecipeService:
     def get_recipes_by_date(min_date: date):
         db = SessionLocal()
         try:
-            return db.query(Recipe).filter(Recipe.issue_date >= min_date).all()
+            recipes = db.query(
+                Recipe,
+                Medicine.name.label('medicine_name'),
+                Doctor.name.label('doctor_name'),
+                Client.name.label('client_name')
+            ).join(
+                Medicine, Recipe.medicine_id == Medicine.id
+            ).join(
+                Doctor, Recipe.doctor_id == Doctor.id
+            ).join(
+                Client, Recipe.client_id == Client.id
+            ).filter(
+                Recipe.issue_date >= min_date
+            ).all()
+            
+            return [{
+                "id": recipe.Recipe.id,
+                "issue_date": recipe.Recipe.issue_date,
+                "medicine_name": recipe.medicine_name,
+                "doctor_name": recipe.doctor_name,
+                "client_name": recipe.client_name
+            } for recipe in recipes]
         finally:
             db.close()
 

@@ -5,8 +5,9 @@ class App(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Сеть аптек — Панель управления")
-        self.geometry("900x700")
+        self.geometry("1000x800")
         self.resizable(True, True)
+        self.minsize(width=800, height=800)
 
         ctk.set_appearance_mode("Dark")
         ctk.set_default_color_theme("blue")

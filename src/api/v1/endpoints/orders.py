@@ -43,7 +43,7 @@ async def create_recipe(recipe_data: RecipeCreate):
         )
     
 @router.get('/recipe/date')
-async def get_recipe_by_date(min_date: date):
+async def get_recipe_by_date(min_date: date = None):
     if min_date:
         min_date = min_date
     else:
