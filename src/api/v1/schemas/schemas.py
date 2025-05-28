@@ -89,3 +89,61 @@ class ShipmentResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+# --------------------------
+# Pharmacy Related Models
+# --------------------------
+
+
+class PharmacyBase(BaseModel):
+    address: str
+    phone_number: str
+    schedule: str
+
+class PharmacyCreate(PharmacyBase):
+    pass
+
+class PharmacyResponse(PharmacyBase):
+    id: int
+    
+    class Config:
+        from_attributes = True
+
+# --------------------------
+# Worker Related Models
+# --------------------------
+
+class RoleBase(BaseModel):
+    name: str
+
+class RoleResponse(RoleBase):
+    id: int
+    
+    class Config:
+        from_attributes = True
+
+class WorkerBase(BaseModel):
+    role_id: int
+    pharmacy_id: int
+    FIO: str
+    salary: float
+    enter_date: date
+    phone_number: str
+    home_address: str
+
+class WorkerCreate(WorkerBase):
+    pass
+
+class WorkerResponse(WorkerBase):
+    id: int
+    role: RoleResponse
+    
+    class Config:
+        from_attributes = True
+
+class WorkerContactInfoUpdate(BaseModel):
+    phone_number: Optional[str] = None
+    home_address: Optional[str] = None
+
+class WorkerPharmacyUpdate(BaseModel):
+    new_pharmacy_id: int
