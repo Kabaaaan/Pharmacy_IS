@@ -2,23 +2,29 @@ import customtkinter as ctk
 
 class App(ctk.CTk):
     def __init__(self):
-        self.show_splash_screen()   
         super().__init__()
-        self.withdraw()  
+        self.withdraw()
         
+        # Добавляем переменные для перемещения окна
+        self._drag_data = {"x": 0, "y": 0}
+        
+        self.show_splash_screen()   
         self.setup_main_window()
-
         self.show_page("HomePage")
         
         self.after(2500, self.transition_to_main_app)
-        
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 
     def show_splash_screen(self):
-        """Создает и показывает заставку"""
-        self.splash = ctk.CTkToplevel()
+        """Создает и показывает заставку с возможностью перемещения"""
+        self.splash = ctk.CTkToplevel(self)
         self.splash.overrideredirect(True)
-        self.splash.attributes("-topmost", True)  
+        self.splash.attributes("-topmost", True)
+        
+        # Добавляем возможность перемещения
+        self.splash.bind("<ButtonPress-1>", self.start_move)
+        self.splash.bind("<ButtonRelease-1>", self.stop_move)
+        self.splash.bind("<B1-Motion>", self.on_move)
         
         splash_width = 500
         splash_height = 250
@@ -28,21 +34,60 @@ class App(ctk.CTk):
         y = (screen_height - splash_height) // 2
         self.splash.geometry(f"{splash_width}x{splash_height}+{x}+{y}")
         
+        # Добавляем рамку для лучшего визуального восприятия
+        border_frame = ctk.CTkFrame(self.splash, border_width=2, border_color="#3A7EBF")
+        border_frame.pack(fill="both", expand=True, padx=2, pady=2)
+        
         ctk.CTkLabel(
-            self.splash,
+            border_frame,
             text="💊 Аптечная сеть",
             font=ctk.CTkFont(size=24, weight="bold")
         ).pack(pady=40)
         
         ctk.CTkLabel(
-            self.splash,
+            border_frame,
             text="Загрузка панели управления...",
             font=ctk.CTkFont(size=14)
         ).pack()
         
-        self.progress = ctk.CTkProgressBar(self.splash, mode="indeterminate")
+        self.progress = ctk.CTkProgressBar(border_frame, mode="indeterminate")
         self.progress.pack(fill="x", padx=50, pady=30)
         self.progress.start()
+
+    # Методы для перемещения окна
+    def start_move(self, event):
+        self._drag_data["x"] = event.x
+        self._drag_data["y"] = event.y
+
+    def stop_move(self, event):
+        self._drag_data["x"] = 0
+        self._drag_data["y"] = 0
+
+    def on_move(self, event):
+        x = self.splash.winfo_x() + (event.x - self._drag_data["x"])
+        y = self.splash.winfo_y() + (event.y - self._drag_data["y"])
+        self.splash.geometry(f"+{x}+{y}")
+
+    def transition_to_main_app(self):
+        """Плавный переход к главному окну"""
+        # Плавное исчезновение splash
+        for i in range(10, -1, -1):
+            alpha = i/10
+            self.splash.attributes("-alpha", alpha)
+            self.splash.update()
+            self.after(20)
+        
+        self.progress.stop()
+        self.splash.destroy()
+        self.deiconify()
+        
+        # Плавное появление главного окна
+        self.attributes("-alpha", 0)
+        for i in range(0, 11):
+            alpha = i/10
+            self.attributes("-alpha", alpha)
+            self.update()
+            self.after(20)
 
     def setup_main_window(self):
         """Настраивает основное окно приложения"""

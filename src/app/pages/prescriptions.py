@@ -23,7 +23,7 @@ class PrescriptionsPage(ctk.CTkFrame):
         self.refresh_prescriptions_list()
 
     def _setup_ui(self):
-        self._create_back_button()
+        # self._create_back_button()
         self._create_header()
         self._create_filters_panel()
         self._create_prescriptions_list()
