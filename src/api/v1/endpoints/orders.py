@@ -47,7 +47,7 @@ async def get_recipe_by_date(min_date: date = None):
     if min_date:
         min_date = min_date
     else:
-        min_date = date(2022, 1, 1)
+        min_date = date(2000, 1, 1)
     try:
         recipes = RecipeService.get_recipes_by_date(min_date)
         return recipes
@@ -95,7 +95,7 @@ async def get_all_orders(start_date: date = None):
     if start_date:
         start_date = start_date
     else:
-        start_date = date(2022, 1, 1)
+        start_date = date(2000, 1, 1)
     try:
         orders = OrderService.get_orders_after_date(start_date=start_date)
         return orders

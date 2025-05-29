@@ -5,7 +5,6 @@ class App(ctk.CTk):
         super().__init__()
         self.withdraw()
         
-        # Добавляем переменные для перемещения окна
         self._drag_data = {"x": 0, "y": 0}
         
         self.show_splash_screen()   
@@ -21,7 +20,6 @@ class App(ctk.CTk):
         self.splash.overrideredirect(True)
         self.splash.attributes("-topmost", True)
         
-        # Добавляем возможность перемещения
         self.splash.bind("<ButtonPress-1>", self.start_move)
         self.splash.bind("<ButtonRelease-1>", self.stop_move)
         self.splash.bind("<B1-Motion>", self.on_move)
@@ -34,7 +32,6 @@ class App(ctk.CTk):
         y = (screen_height - splash_height) // 2
         self.splash.geometry(f"{splash_width}x{splash_height}+{x}+{y}")
         
-        # Добавляем рамку для лучшего визуального восприятия
         border_frame = ctk.CTkFrame(self.splash, border_width=2, border_color="#3A7EBF")
         border_frame.pack(fill="both", expand=True, padx=2, pady=2)
         
@@ -54,7 +51,6 @@ class App(ctk.CTk):
         self.progress.pack(fill="x", padx=50, pady=30)
         self.progress.start()
 
-    # Методы для перемещения окна
     def start_move(self, event):
         self._drag_data["x"] = event.x
         self._drag_data["y"] = event.y
@@ -70,7 +66,6 @@ class App(ctk.CTk):
 
     def transition_to_main_app(self):
         """Плавный переход к главному окну"""
-        # Плавное исчезновение splash
         for i in range(10, -1, -1):
             alpha = i/10
             self.splash.attributes("-alpha", alpha)
@@ -81,7 +76,6 @@ class App(ctk.CTk):
         self.splash.destroy()
         self.deiconify()
         
-        # Плавное появление главного окна
         self.attributes("-alpha", 0)
         for i in range(0, 11):
             alpha = i/10
