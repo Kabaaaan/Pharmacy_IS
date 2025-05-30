@@ -23,7 +23,6 @@ class PrescriptionsPage(ctk.CTkFrame):
         self.refresh_prescriptions_list()
 
     def _setup_ui(self):
-        # self._create_back_button()
         self._create_header()
         self._create_filters_panel()
         self._create_prescriptions_list()
@@ -73,7 +72,7 @@ class PrescriptionsPage(ctk.CTkFrame):
             text="⚡ Действия с рецептами",
             font=ctk.CTkFont(size=14, weight="bold"),
             text_color="#7a7a7a"
-        ).pack(side="left")
+        ).pack(side="bottom")
         
         buttons_frame = ctk.CTkFrame(actions_panel, fg_color="transparent")
         buttons_frame.pack(fill="x", padx=10, pady=(5, 10))
@@ -118,23 +117,18 @@ class PrescriptionsPage(ctk.CTkFrame):
         self._show_loading_spinner()
         
         try:   
-            # Определяем путь к папке reports (на 2 уровня выше текущего файла)
             current_dir = pathlib.Path(__file__).parent
             reports_dir = current_dir.parent.parent.parent / "reports"
             
-            # Создаем папку, если ее нет
             os.makedirs(reports_dir, exist_ok=True)
             
-            # Создаем новую книгу Excel
             wb = Workbook()
             ws = wb.active
             ws.title = "Рецепты"
             
-            # Заголовки столбцов
             headers = ["ID", "Дата", "Врач", "Пациент", "Препарат"]
             ws.append(headers)
             
-            # Заполняем данными
             for pres in self._prescriptions_data:
                 ws.append([
                     pres["id"],
@@ -144,7 +138,6 @@ class PrescriptionsPage(ctk.CTkFrame):
                     pres["medicine"]
                 ])
             
-            # Автоматическая ширина столбцов
             for col in ws.columns:
                 max_length = 0
                 column = col[0].column_letter
@@ -157,7 +150,6 @@ class PrescriptionsPage(ctk.CTkFrame):
                 adjusted_width = (max_length + 2) * 1.2
                 ws.column_dimensions[column].width = adjusted_width
             
-            # Сохраняем файл в папку reports
             filename = f"рецепты_{datetime.now().strftime('%Y-%m-%d_%H-%M')}.xlsx"
             filepath = reports_dir / filename
             wb.save(filepath)
@@ -460,7 +452,7 @@ class PrescriptionsPage(ctk.CTkFrame):
             header_frame,
             text="▌",
             font=ctk.CTkFont(size=28),
-            text_color="#4d8af0"
+            text_color="#2e8b57"
         ).pack(side="left", padx=(0, 10))
         
         ctk.CTkLabel(
@@ -474,7 +466,7 @@ class PrescriptionsPage(ctk.CTkFrame):
             header_frame,
             text="▐",
             font=ctk.CTkFont(size=28),
-            text_color="#4d8af0"
+            text_color="#2e8b57"
         ).pack(side="right")
 
         form_frame = ctk.CTkFrame(modal, fg_color="transparent")

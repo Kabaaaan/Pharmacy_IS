@@ -10,3 +10,4 @@ fastapi
 Customtkinter
 openpyxl
 threading
+os

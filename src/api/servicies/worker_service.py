@@ -1,6 +1,7 @@
 from database.session import SessionLocal
 from database.models import Worker, Role
 from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
 
 class RoleService:
@@ -47,7 +48,7 @@ class RoleService:
 
 class WorkerService:
     @staticmethod
-    def create_worker(role_id: int, pharmacy_id: int, FIO: str, salary: float, 
+    def create_worker(role_id: int, pharmacy_id: int, FIO: str, salary: float,
                      enter_date: str, phone_number: str, home_address: str):
         db = SessionLocal()
         try:
@@ -62,8 +63,12 @@ class WorkerService:
             )
             db.add(worker)
             db.commit()
-            db.refresh(worker)
-            return worker
+            
+            worker_with_role = db.query(Worker).options(
+                joinedload(Worker.role)
+            ).filter(Worker.id == worker.id).first()
+            
+            return worker_with_role
         finally:
             db.close()
 
@@ -108,7 +113,11 @@ class WorkerService:
     def update_worker_contact_info(worker_id: int, phone_number: str = None, home_address: str = None):
         db = SessionLocal()
         try:
-            worker = db.query(Worker).filter(Worker.id == worker_id).first()
+            worker = db.query(Worker).options(
+                joinedload(Worker.role),
+                joinedload(Worker.pharmacy)
+            ).filter(Worker.id == worker_id).first()
+            
             if not worker:
                 return None
                 
@@ -118,7 +127,11 @@ class WorkerService:
                 worker.home_address = home_address
                 
             db.commit()
+            
             db.refresh(worker)
+            worker.role 
+            worker.pharmacy  
+            
             return worker
         finally:
             db.close()
@@ -127,13 +140,21 @@ class WorkerService:
     def update_worker_pharmacy(worker_id: int, new_pharmacy_id: int):
         db = SessionLocal()
         try:
-            worker = db.query(Worker).filter(Worker.id == worker_id).first()
+            worker = db.query(Worker).options(
+                joinedload(Worker.role),
+                joinedload(Worker.pharmacy)
+            ).filter(Worker.id == worker_id).first()
+            
             if not worker:
                 return None
                 
             worker.pharmacy_id = new_pharmacy_id
             db.commit()
+            
             db.refresh(worker)
+            worker.role  
+            worker.pharmacy 
+            
             return worker
         finally:
             db.close()
