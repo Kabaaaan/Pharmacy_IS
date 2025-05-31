@@ -2,7 +2,7 @@ import customtkinter as ctk
 from tkinter import messagebox, StringVar
 import threading
 from datetime import datetime
-from .home import api  
+from .home import api
 
 
 class EmployeesPage(ctk.CTkFrame):
@@ -15,7 +15,7 @@ class EmployeesPage(ctk.CTkFrame):
         self._pharmacies = []
         self._roles = []
         self.loading_spinner = None
-        
+
         self._setup_ui()
         self.load_initial_data()
 
@@ -29,48 +29,48 @@ class EmployeesPage(ctk.CTkFrame):
         """Создание заголовка страницы с акцентным оформлением"""
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
         header_frame.pack(pady=(20, 15), fill="x", padx=200)
-        
+
         ctk.CTkLabel(
             header_frame,
             text="Управление сотрудниками",
             font=ctk.CTkFont(size=26, weight="bold", family="Arial"),
             text_color="#ffffff"
         ).pack(side="bottom")
-        
+
     def _create_controls_panel(self):
         """Панель управления с улучшенным дизайном"""
         actions_panel = ctk.CTkFrame(
-            self, 
+            self,
             fg_color="#252525",
             corner_radius=14,
             border_width=1,
             border_color="#333333"
         )
         actions_panel.pack(fill="x", padx=20, pady=(0, 20))
-        
+
         header_frame = ctk.CTkFrame(actions_panel, fg_color="transparent")
         header_frame.pack(fill="x", pady=(10, 5))
-        
+
         ctk.CTkLabel(
             header_frame,
             text="⚡ Действия с сотрудниками",
             font=ctk.CTkFont(size=14, weight="bold"),
             text_color="#7a7a7a"
-        ).pack(expand=True)  
-        
+        ).pack(expand=True)
+
         controls_frame = ctk.CTkFrame(actions_panel, fg_color="transparent")
         controls_frame.pack(fill="x", padx=10, pady=(0, 10))
-        
+
         btn_style = {
             "height": 40,
             "font": ctk.CTkFont(size=14, weight="bold"),
             "corner_radius": 8,
             "border_width": 1
         }
-        
+
         btn_add_frame = ctk.CTkFrame(controls_frame, fg_color="transparent")
         btn_add_frame.pack(side="left", expand=True, fill="both", padx=(0, 10))
-        
+
         self.btn_add = ctk.CTkButton(
             btn_add_frame,
             text="➕ Добавить сотрудника",
@@ -82,19 +82,19 @@ class EmployeesPage(ctk.CTkFrame):
             **btn_style
         )
         self.btn_add.pack(fill="x")
-        
+
         filter_container = ctk.CTkFrame(
             controls_frame,
-            fg_color="#303030",  
+            fg_color="#303030",
             corner_radius=8,
             border_width=1,
             border_color="#404040"
         )
         filter_container.pack(side="right", expand=True, fill="both")
-        
+
         filter_frame = ctk.CTkFrame(filter_container, fg_color="transparent")
         filter_frame.pack(padx=10, pady=5, fill="x")
-        
+
         ctk.CTkLabel(
             filter_frame,
             text="🔍 Фильтр по аптеке:",
@@ -110,7 +110,7 @@ class EmployeesPage(ctk.CTkFrame):
             state="disabled",
             width=180,
             font=ctk.CTkFont(size=14),
-            fg_color="#383838",  
+            fg_color="#383838",
             button_color="#4d4d4d",
             dropdown_fg_color="#252525",
             dropdown_text_color="white",
@@ -123,7 +123,7 @@ class EmployeesPage(ctk.CTkFrame):
     def _create_scrollable_area(self):
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
         header_frame.pack(pady=(0, 10), fill="x", padx=20)
-        
+
         ctk.CTkLabel(
             header_frame,
             text="СПИСОК СОТРУДНИКОВ",
@@ -132,24 +132,26 @@ class EmployeesPage(ctk.CTkFrame):
         ).pack(side="left")
 
         self.scrollable_frame = ctk.CTkScrollableFrame(
-            self, 
-            width=800, 
-            height=400, 
-            corner_radius=14, 
+            self,
+            width=800,
+            height=400,
+            corner_radius=14,
             fg_color="#252525",
             border_width=1,
             border_color="#333333"
         )
-        self.scrollable_frame.pack(padx=20, pady=(0, 20), fill="both", expand=True)
+        self.scrollable_frame.pack(
+            padx=20, pady=(0, 20), fill="both", expand=True)
 
     def load_initial_data(self):
         """Загрузка начальных данных (аптеки, роли, сотрудники)"""
         self._show_loading()
-        
+
         def fetch_data():
             pharmacies = api.get("pharmacy")
             if pharmacies:
-                self._pharmacies = [(p["id"], p["address"]) for p in pharmacies]
+                self._pharmacies = [(p["id"], p["address"])
+                                    for p in pharmacies]
                 self.after(100, lambda: self._update_pharmacy_filter(
                     ["Все"] + [addr for _, addr in self._pharmacies]
                 ))
@@ -159,27 +161,33 @@ class EmployeesPage(ctk.CTkFrame):
                 self._roles = [(r["id"], r["name"]) for r in roles]
 
             self._refresh_employees()
-            
+
         threading.Thread(target=fetch_data, daemon=True).start()
 
     def _update_pharmacy_filter(self, values):
         """Обновление списка аптек в фильтре"""
-        self.pharmacy_combobox.configure(values=values, state="readonly")
+        if not self.winfo_exists():
+            return
+        if self.pharmacy_combobox and self.pharmacy_combobox.winfo_exists():
+            self.pharmacy_combobox.configure(values=values, state="readonly")
         self._hide_loading()
 
     def _refresh_employees(self, *args):
         """Обновление списка сотрудников"""
+        if not self.winfo_exists():
+            return
         self._show_loading()
-        
+
         def fetch_employees():
             response = api.get("worker")
             if response:
                 for emp in response:
-                    if isinstance(emp.get('role'), str):  
-                        emp['role'] = {'name': emp['role'], 'id': emp.get('role_id', 0)}
-                    elif not emp.get('role'): 
+                    if isinstance(emp.get('role'), str):
+                        emp['role'] = {'name': emp['role'],
+                                       'id': emp.get('role_id', 0)}
+                    elif not emp.get('role'):
                         emp['role'] = {'name': 'Неизвестно', 'id': 0}
-                
+
                 self._employees_data = response
                 self.after(100, self._display_employees)
             else:
@@ -187,20 +195,23 @@ class EmployeesPage(ctk.CTkFrame):
                     "Ошибка", "Не удалось загрузить данные сотрудников"
                 ))
                 self._hide_loading()
-                
+
         threading.Thread(target=fetch_employees, daemon=True).start()
 
     def _display_employees(self):
         """Отображение списка сотрудников"""
-        for widget in self.scrollable_frame.winfo_children():
-            widget.destroy()
+        if not self.winfo_exists():
+            return
+        self._clear_scrollable_area()
 
         selected_pharmacy = self.pharmacy_filter.get()
         if selected_pharmacy != "Все":
             pharmacy_id = next(
-                (pid for pid, addr in self._pharmacies if addr == selected_pharmacy), None
+                (pid for pid, addr in self._pharmacies if addr ==
+                 selected_pharmacy), None
             )
-            employees = [e for e in self._employees_data if e["pharmacy_id"] == pharmacy_id]
+            employees = [
+                e for e in self._employees_data if e["pharmacy_id"] == pharmacy_id]
         else:
             employees = self._employees_data
 
@@ -216,16 +227,20 @@ class EmployeesPage(ctk.CTkFrame):
 
         for emp in employees:
             self._create_employee_card(emp)
-        
+
         self._hide_loading()
 
     def _create_employee_card(self, employee):
         """Создание карточки сотрудника в новом стиле"""
+        if not self.scrollable_frame or not self.scrollable_frame.winfo_exists():
+            return
         pharmacy_name = next(
-            (addr for pid, addr in self._pharmacies if pid == employee["pharmacy_id"]), "Неизвестно"
+            (addr for pid, addr in self._pharmacies if pid ==
+             employee["pharmacy_id"]), "Неизвестно"
         )
         role_name = next(
-            (name for rid, name in self._roles if rid == employee["role_id"]), "Неизвестно"
+            (name for rid, name in self._roles if rid ==
+             employee["role_id"]), "Неизвестно"
         )
 
         container = ctk.CTkFrame(
@@ -239,7 +254,7 @@ class EmployeesPage(ctk.CTkFrame):
 
         top_frame = ctk.CTkFrame(container, fg_color="transparent")
         top_frame.pack(fill="x", padx=10, pady=(10, 0))
-        
+
         ctk.CTkLabel(
             top_frame,
             text=f"👤 ID: {employee['id']}",
@@ -247,7 +262,7 @@ class EmployeesPage(ctk.CTkFrame):
             text_color="#4d8af0",
             anchor="w"
         ).pack(side="left", fill="x", expand=True)
-        
+
         ctk.CTkLabel(
             top_frame,
             text=f"📅 {employee['enter_date']}",
@@ -348,15 +363,17 @@ class EmployeesPage(ctk.CTkFrame):
             return
 
         dialog = ctk.CTkToplevel(self)
+        dialog.transient(self)  # Модальное поверх основного окна
         dialog.title(f"Изменение аптеки для {employee['FIO']}")
         dialog.geometry("450x300")
         dialog.resizable(False, False)
         dialog.grab_set()
+        dialog.focus_set()  # Устанавливаем фокус
         dialog.configure(fg_color="#1a1a1a")
 
         header_frame = ctk.CTkFrame(dialog, fg_color="transparent")
         header_frame.pack(pady=(20, 15), fill="x", padx=20)
-        
+
         ctk.CTkLabel(
             header_frame,
             text="Смена аптеки",
@@ -365,12 +382,13 @@ class EmployeesPage(ctk.CTkFrame):
         ).pack(side="left")
 
         current_pharmacy = next(
-            (addr for pid, addr in self._pharmacies if pid == employee["pharmacy_id"]), "Неизвестно"
+            (addr for pid, addr in self._pharmacies if pid ==
+             employee["pharmacy_id"]), "Неизвестно"
         )
-        
+
         info_frame = ctk.CTkFrame(dialog, fg_color="#252525", corner_radius=8)
         info_frame.pack(fill="x", padx=20, pady=10)
-        
+
         ctk.CTkLabel(
             info_frame,
             text=f"Текущая аптека: {current_pharmacy}",
@@ -408,19 +426,21 @@ class EmployeesPage(ctk.CTkFrame):
             new_pharmacy_id = next(
                 pid for pid, addr in self._pharmacies if addr == new_pharmacy_name
             )
-            
+
             data = {"new_pharmacy_id": new_pharmacy_id}
             response = api.put(
                 f"worker/work_place/{employee['id']}",
                 json_data=data
             )
-            
+
             if response:
-                messagebox.showinfo("Успех", "Аптека сотрудника успешно изменена")
+                messagebox.showinfo(
+                    "Успех", "Аптека сотрудника успешно изменена")
                 dialog.destroy()
                 self._refresh_employees()
             else:
-                messagebox.showerror("Ошибка", "Не удалось изменить аптеку сотрудника")
+                messagebox.showerror(
+                    "Ошибка", "Не удалось изменить аптеку сотрудника")
 
         ctk.CTkButton(
             btn_frame,
@@ -449,33 +469,36 @@ class EmployeesPage(ctk.CTkFrame):
     def _open_add_dialog(self):
         """Диалог добавления нового сотрудника"""
         if not self._pharmacies or not self._roles:
-            messagebox.showwarning("Ошибка", "Данные не загружены, попробуйте позже")
+            messagebox.showwarning(
+                "Ошибка", "Данные не загружены, попробуйте позже")
             return
 
         dialog = ctk.CTkToplevel(self)
+        dialog.transient(self)  # Модальное поверх основного окна
         dialog.title("Добавить сотрудника")
         dialog.geometry("500x750")
         dialog.resizable(False, False)
         dialog.grab_set()
+        dialog.focus_set()  # Устанавливаем фокус
         dialog.configure(fg_color="#1a1a1a")
 
         header_frame = ctk.CTkFrame(dialog, fg_color="transparent")
         header_frame.pack(pady=(20, 15), fill="x", padx=20)
-        
+
         ctk.CTkLabel(
             header_frame,
             text="▌",
             font=ctk.CTkFont(size=24),
             text_color="#2e8b57"
         ).pack(side="left", padx=(0, 10))
-        
+
         ctk.CTkLabel(
             header_frame,
             text="Новый сотрудник",
             font=ctk.CTkFont(size=20, weight="bold"),
             text_color="#ffffff"
         ).pack(side="left")
-        
+
         ctk.CTkLabel(
             header_frame,
             text="▐",
@@ -486,7 +509,8 @@ class EmployeesPage(ctk.CTkFrame):
         fields = [
             ("FIO", "ФИО", "text", ""),
             ("salary", "Зарплата", "number", "0"),
-            ("enter_date", "Дата приёма", "date", datetime.now().strftime("%Y-%m-%d")),
+            ("enter_date", "Дата приёма", "date",
+             datetime.now().strftime("%Y-%m-%d")),
             ("phone_number", "Телефон", "tel", "+7"),
             ("home_address", "Адрес", "text", ""),
         ]
@@ -496,7 +520,7 @@ class EmployeesPage(ctk.CTkFrame):
             ctk.CTkLabel(
                 dialog, text=f"{label}:", text_color="white"
             ).pack(anchor="w", padx=20, pady=(10, 2))
-            
+
             if field_type == "date":
                 entry = ctk.CTkEntry(
                     dialog, placeholder_text="YYYY-MM-DD", width=380
@@ -505,7 +529,7 @@ class EmployeesPage(ctk.CTkFrame):
                 entry = ctk.CTkEntry(
                     dialog, width=380
                 )
-            
+
             entry.insert(0, default)
             entry.pack(padx=20)
             entries[field] = entry
@@ -560,13 +584,12 @@ class EmployeesPage(ctk.CTkFrame):
                     raise ValueError("Зарплата не может быть отрицательной")
             except ValueError:
                 messagebox.showerror(
-                    "Ошибка", 
+                    "Ошибка",
                     "Некорректное значение зарплаты\n"
                     "Введите положительное число (например: 45000 или 45000.50)"
                 )
-                entries["salary"].focus_set()  
+                entries["salary"].focus_set()
                 return
-            
 
             data = {
                 "FIO": entries["FIO"].get().strip(),
@@ -580,7 +603,8 @@ class EmployeesPage(ctk.CTkFrame):
 
             # Валидация
             if not all(data.values()):
-                messagebox.showwarning("Ошибка", "Все поля обязательны для заполнения")
+                messagebox.showwarning(
+                    "Ошибка", "Все поля обязательны для заполнения")
                 return
 
             response = api.post("worker", json_data=data)
@@ -589,7 +613,8 @@ class EmployeesPage(ctk.CTkFrame):
                 dialog.destroy()
                 self._refresh_employees()
             else:
-                messagebox.showerror("Ошибка", "Не удалось добавить сотрудника")
+                messagebox.showerror(
+                    "Ошибка", "Не удалось добавить сотрудника")
 
         ctk.CTkButton(
             btn_frame,
@@ -616,15 +641,17 @@ class EmployeesPage(ctk.CTkFrame):
     def _open_edit_dialog(self, employee):
         """Диалог редактирования сотрудника"""
         dialog = ctk.CTkToplevel(self)
+        dialog.transient(self)  # Модальное поверх основного окна
         dialog.title(f"Редактирование сотрудника ID={employee['id']}")
         dialog.geometry("550x500")
         dialog.resizable(False, False)
         dialog.grab_set()
+        dialog.focus_set()  # Устанавливаем фокус
         dialog.configure(fg_color="#1a1a1a")
 
         header_frame = ctk.CTkFrame(dialog, fg_color="transparent")
         header_frame.pack(pady=(20, 15), fill="x", padx=20)
-        
+
         ctk.CTkLabel(
             header_frame,
             text=f"Редактирование: {employee['FIO']}",
@@ -635,7 +662,8 @@ class EmployeesPage(ctk.CTkFrame):
         info_frame = ctk.CTkFrame(dialog, fg_color="#252525", corner_radius=8)
         info_frame.pack(fill="x", padx=20, pady=10)
 
-        role_name = next((name for rid, name in self._roles if rid == employee["role_id"]), "Неизвестно")
+        role_name = next(
+            (name for rid, name in self._roles if rid == employee["role_id"]), "Неизвестно")
         ctk.CTkLabel(
             info_frame,
             text=f"Должность: {role_name} | Зарплата: {employee['salary']:,} ₽",
@@ -653,7 +681,7 @@ class EmployeesPage(ctk.CTkFrame):
             ctk.CTkLabel(
                 dialog, text=f"{label}:", text_color="white"
             ).pack(anchor="w", padx=20, pady=(10, 2))
-            
+
             entry = ctk.CTkEntry(dialog, width=380)
             entry.insert(0, value)
             entry.pack(padx=20)
@@ -664,12 +692,13 @@ class EmployeesPage(ctk.CTkFrame):
 
         def submit():
             data = {
-                "phone_number": entries["phone_number"].get().strip(),
+                "phone_number": entries["phone_number"].get().strip,
                 "home_address": entries["home_address"].get().strip()
             }
 
             if not all(data.values()):
-                messagebox.showwarning("Ошибка", "Все поля обязательны для заполнения")
+                messagebox.showwarning(
+                    "Ошибка", "Все поля обязательны для заполнения")
                 return
 
             response = api.put(f"worker/{employee['id']}", json_data=data)
@@ -713,38 +742,40 @@ class EmployeesPage(ctk.CTkFrame):
 
         def perform_delete():
             response = api.delete(f"worker/{employee['id']}")
-            
-            if response is not None:  
-                self.after(100, lambda: messagebox.showinfo("Успех", "Сотрудник удалён"))
+
+            if response is not None:
+                self.after(100, lambda: messagebox.showinfo(
+                    "Успех", "Сотрудник удалён"))
                 self.after(100, self._refresh_employees)
             else:
                 self.after(100, lambda: messagebox.showerror(
-                    "Ошибка", 
+                    "Ошибка",
                     response.get('detail', 'Не удалось удалить сотрудника')
                 ))
-        
+
         self._show_loading()
         threading.Thread(target=perform_delete, daemon=True).start()
 
     def _show_loading(self):
         """Показать индикатор загрузки"""
         self._clear_scrollable_area()
-        
-        self.loading_spinner = ctk.CTkLabel(
-            self.scrollable_frame,
-            text="⏳ Загрузка данных...",
-            font=ctk.CTkFont(size=16, weight="bold"),
-            text_color="#7a7a7a"
-        )
-        self.loading_spinner.pack(pady=40)
+        if self.scrollable_frame and self.scrollable_frame.winfo_exists():
+            self.loading_spinner = ctk.CTkLabel(
+                self.scrollable_frame,
+                text="⏳ Загрузка данных...",
+                font=ctk.CTkFont(size=16, weight="bold"),
+                text_color="#7a7a7a"
+            )
+            self.loading_spinner.pack(pady=40)
 
     def _hide_loading(self):
         """Скрыть индикатор загрузки"""
-        if self.loading_spinner:
+        if self.loading_spinner and self.loading_spinner.winfo_exists():
             self.loading_spinner.destroy()
             self.loading_spinner = None
 
     def _clear_scrollable_area(self):
         """Очистить область с сотрудниками"""
-        for widget in self.scrollable_frame.winfo_children():
-            widget.destroy()
+        if self.scrollable_frame and self.scrollable_frame.winfo_exists():
+            for widget in self.scrollable_frame.winfo_children():
+                widget.destroy()
