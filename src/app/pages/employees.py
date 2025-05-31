@@ -692,7 +692,7 @@ class EmployeesPage(ctk.CTkFrame):
 
         def submit():
             data = {
-                "phone_number": entries["phone_number"].get().strip,
+                "phone_number": entries["phone_number"].get().strip(),
                 "home_address": entries["home_address"].get().strip()
             }
 

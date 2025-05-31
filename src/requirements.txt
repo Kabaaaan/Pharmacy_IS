@@ -1,9 +1,7 @@
 requests
 sqlalchemy
 pymysql
-python-multipart
-pydantic
-PyJWT  
+pydantic 
 python-dotenv
 uvicorn
 fastapi
