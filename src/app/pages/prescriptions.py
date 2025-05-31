@@ -6,6 +6,7 @@ from openpyxl import Workbook
 import os
 import pathlib
 
+
 class PrescriptionsPage(ctk.CTkFrame):
     """Страница «Работа с рецептами»"""
 
@@ -15,8 +16,8 @@ class PrescriptionsPage(ctk.CTkFrame):
 
         self._prescriptions_data = []
         self._medicines_list = []
-        self._medicines_dict = {} 
-        self.loading = False  
+        self._medicines_dict = {}
+        self.loading = False
 
         self._setup_ui()
         self.load_medicines()
@@ -26,7 +27,7 @@ class PrescriptionsPage(ctk.CTkFrame):
         self._create_header()
         self._create_filters_panel()
         self._create_prescriptions_list()
-        
+
     def _create_back_button(self):
         ctk.CTkButton(
             self,
@@ -46,44 +47,44 @@ class PrescriptionsPage(ctk.CTkFrame):
     def _create_header(self):
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
         header_frame.pack(pady=(20, 15), fill="x", padx=200)
-        
+
         ctk.CTkLabel(
             header_frame,
             text="Работа с рецептами",
             font=ctk.CTkFont(size=26, weight="bold", family="Arial"),
             text_color="#ffffff"
         ).pack(side="bottom")
-        
+
     def _create_filters_panel(self):
         actions_panel = ctk.CTkFrame(
-            self, 
+            self,
             fg_color="#252525",
             corner_radius=14,
             border_width=1,
             border_color="#333333"
         )
         actions_panel.pack(fill="x", padx=20, pady=(0, 20))
-        
+
         header_frame = ctk.CTkFrame(actions_panel, fg_color="transparent")
         header_frame.pack(fill="x", padx=15, pady=(10, 5))
-        
+
         ctk.CTkLabel(
             header_frame,
             text="⚡ Действия с рецептами",
             font=ctk.CTkFont(size=14, weight="bold"),
             text_color="#7a7a7a"
         ).pack(side="bottom")
-        
+
         buttons_frame = ctk.CTkFrame(actions_panel, fg_color="transparent")
         buttons_frame.pack(fill="x", padx=10, pady=(5, 10))
-        
+
         btn_style = {
             "height": 40,
             "font": ctk.CTkFont(size=14, weight="bold"),
             "corner_radius": 8,
             "border_width": 1
         }
-        
+
         self.btn_add = ctk.CTkButton(
             buttons_frame,
             text="➕ Создать новый рецепт",
@@ -95,7 +96,7 @@ class PrescriptionsPage(ctk.CTkFrame):
             **btn_style
         )
         self.btn_add.pack(side="left", expand=True, fill="x", padx=(0, 10))
-        
+
         self.btn_export = ctk.CTkButton(
             buttons_frame,
             text="📁 Экспорт в Excel",
@@ -107,28 +108,30 @@ class PrescriptionsPage(ctk.CTkFrame):
             **btn_style
         )
         self.btn_export.pack(side="left", expand=True, fill="x")
-    
+
     def export_to_excel(self):
         """Экспорт списка рецептов в Excel"""
         if not self._prescriptions_data:
-            messagebox.showwarning("Предупреждение", "Нет данных для экспорта")
+            if self.winfo_exists():
+                messagebox.showwarning(
+                    "Предупреждение", "Нет данных для экспорта")
             return
-            
+
         self._show_loading_spinner()
-        
-        try:   
+
+        try:
             current_dir = pathlib.Path(__file__).parent
             reports_dir = current_dir.parent.parent.parent / "reports"
-            
+
             os.makedirs(reports_dir, exist_ok=True)
-            
+
             wb = Workbook()
             ws = wb.active
             ws.title = "Рецепты"
-            
+
             headers = ["ID", "Дата", "Врач", "Пациент", "Препарат"]
             ws.append(headers)
-            
+
             for pres in self._prescriptions_data:
                 ws.append([
                     pres["id"],
@@ -137,7 +140,7 @@ class PrescriptionsPage(ctk.CTkFrame):
                     pres["patient"],
                     pres["medicine"]
                 ])
-            
+
             for col in ws.columns:
                 max_length = 0
                 column = col[0].column_letter
@@ -149,34 +152,37 @@ class PrescriptionsPage(ctk.CTkFrame):
                         pass
                 adjusted_width = (max_length + 2) * 1.2
                 ws.column_dimensions[column].width = adjusted_width
-            
+
             filename = f"рецепты_{datetime.now().strftime('%Y-%m-%d_%H-%M')}.xlsx"
             filepath = reports_dir / filename
             wb.save(filepath)
-            
-            messagebox.showinfo(
-                "Успех", 
-                f"Данные успешно экспортированы в файл:\n{filepath}"
-            )
-            
+
+            if self.winfo_exists():
+                messagebox.showinfo(
+                    "Успех",
+                    f"Данные успешно экспортированы в файл:\n{filepath}"
+                )
+
         except ImportError:
-            messagebox.showerror(
-                "Ошибка", 
-                "Для экспорта требуется установить openpyxl\n"
-                "Установите его командой: pip install openpyxl"
-            )
+            if self.winfo_exists():
+                messagebox.showerror(
+                    "Ошибка",
+                    "Для экспорта требуется установить openpyxl\n"
+                    "Установите его командой: pip install openpyxl"
+                )
         except Exception as e:
-            messagebox.showerror(
-                "Ошибка", 
-                f"Не удалось экспортировать данные: {str(e)}"
-            )
+            if self.winfo_exists():
+                messagebox.showerror(
+                    "Ошибка",
+                    f"Не удалось экспортировать данные: {str(e)}"
+                )
         finally:
             self.refresh_prescriptions_list()
 
     def _create_prescriptions_list(self):
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
         header_frame.pack(pady=(0, 10), fill="x", padx=20)
-        
+
         ctk.CTkLabel(
             header_frame,
             text="СПИСОК РЕЦЕПТОВ",
@@ -185,15 +191,16 @@ class PrescriptionsPage(ctk.CTkFrame):
         ).pack(side="left")
 
         self.scrollable_frame = ctk.CTkScrollableFrame(
-            self, 
-            width=800, 
-            height=400, 
-            corner_radius=14, 
+            self,
+            width=800,
+            height=400,
+            corner_radius=14,
             fg_color="#252525",
             border_width=1,
             border_color="#333333"
         )
-        self.scrollable_frame.pack(padx=20, pady=(0, 20), fill="both", expand=True)
+        self.scrollable_frame.pack(
+            padx=20, pady=(0, 20), fill="both", expand=True)
 
     def parse_date(self, date_str):
         """Парсит строку «дд.мм.ГГГГ» в datetime. Если некорректно — возвращает None."""
@@ -211,26 +218,33 @@ class PrescriptionsPage(ctk.CTkFrame):
         """Загружает список лекарств из API"""
         try:
             response = api.get(endpoint='medicine')
-            
+
             if response and isinstance(response, list):
                 self._medicines_list = [med["name"] for med in response]
-                self._medicines_dict = {med["name"]: med["id"] for med in response}
+                self._medicines_dict = {med["name"]
+                    : med["id"] for med in response}
             else:
-                messagebox.showwarning("Предупреждение", "Не удалось загрузить список лекарств")
+                if self.winfo_exists():
+                    messagebox.showwarning(
+                        "Предупреждение", "Не удалось загрузить список лекарств")
         except Exception as e:
-            messagebox.showerror("Ошибка", f"Ошибка при загрузке лекарств: {str(e)}")
+            if self.winfo_exists():
+                messagebox.showerror(
+                    "Ошибка", f"Ошибка при загрузке лекарств: {str(e)}")
 
     def refresh_prescriptions_list(self):
         """Загружает и отображает список рецептов"""
+        if not self.winfo_exists():
+            return
         if self.loading:
             return
-            
+
         self.loading = True
         self._show_loading_spinner()
-        
+
         try:
             response = api.get(endpoint='order/recipe/date')
-            
+
             if response and isinstance(response, list):
                 processed = []
                 for pres in response:
@@ -244,10 +258,10 @@ class PrescriptionsPage(ctk.CTkFrame):
                         })
                     except Exception:
                         continue
-                
+
                 self._prescriptions_data = sorted(
-                    processed, 
-                    key=lambda p: p["date"], 
+                    processed,
+                    key=lambda p: p["date"],
                     reverse=True
                 )
                 self._update_prescriptions_list()
@@ -260,9 +274,12 @@ class PrescriptionsPage(ctk.CTkFrame):
 
     def _update_prescriptions_list(self):
         """Обновляет список рецептов на основе загруженных данных"""
+        if not self.winfo_exists():
+            return
         self._clear_orders_list()
-        
-        self.scrollable_frame._parent_canvas.yview_moveto(0)
+
+        if self.scrollable_frame and self.scrollable_frame.winfo_exists():
+            self.scrollable_frame._parent_canvas.yview_moveto(0)
 
         if not self._prescriptions_data:
             self._show_no_orders_message()
@@ -275,64 +292,71 @@ class PrescriptionsPage(ctk.CTkFrame):
 
     def _clear_orders_list(self):
         """Очищает список рецептов"""
-        for widget in self.scrollable_frame.winfo_children():
-            widget.destroy()
+        if self.scrollable_frame and self.scrollable_frame.winfo_exists():
+            for widget in self.scrollable_frame.winfo_children():
+                widget.destroy()
 
     def _show_loading_spinner(self):
         """Показывает индикатор загрузки"""
         self._clear_orders_list()
-        spinner_frame = ctk.CTkFrame(
-            self.scrollable_frame,
-            fg_color="#252525",
-            corner_radius=12,
-            height=100
-        )
-        spinner_frame.pack(fill="x", padx=10, pady=10)
-        
-        self.loading_spinner = ctk.CTkLabel(
-            spinner_frame,
-            text="⏳ Загрузка данных...",
-            font=ctk.CTkFont(size=16, weight="bold"),
-            text_color="#7a7a7a"
-        )
-        self.loading_spinner.place(relx=0.5, rely=0.5, anchor="center")
+        if self.scrollable_frame and self.scrollable_frame.winfo_exists():
+            spinner_frame = ctk.CTkFrame(
+                self.scrollable_frame,
+                fg_color="#252525",
+                corner_radius=12,
+                height=100
+            )
+            spinner_frame.pack(fill="x", padx=10, pady=10)
+
+            self.loading_spinner = ctk.CTkLabel(
+                spinner_frame,
+                text="⏳ Загрузка данных...",
+                font=ctk.CTkFont(size=16, weight="bold"),
+                text_color="#7a7a7a"
+            )
+            self.loading_spinner.place(relx=0.5, rely=0.5, anchor="center")
 
     def _hide_loading_spinner(self):
         """Скрывает индикатор загрузки"""
-        if hasattr(self, 'loading_spinner') and self.loading_spinner:
+        if self.loading_spinner and self.loading_spinner.winfo_exists():
             self.loading_spinner.destroy()
 
     def _show_no_orders_message(self):
         """Показывает сообщение об отсутствии рецептов"""
-        empty_frame = ctk.CTkFrame(
-            self.scrollable_frame,
-            fg_color="#252525",
-            corner_radius=12,
-            height=100
-        )
-        empty_frame.pack(fill="x", padx=10, pady=10)
-        
-        ctk.CTkLabel(
-            empty_frame,
-            text="📭 Рецепты не найдены",
-            font=ctk.CTkFont(size=16),
-            text_color="#777777"
-        ).place(relx=0.5, rely=0.5, anchor="center")
+        if self.scrollable_frame and self.scrollable_frame.winfo_exists():
+            empty_frame = ctk.CTkFrame(
+                self.scrollable_frame,
+                fg_color="#252525",
+                corner_radius=12,
+                height=100
+            )
+            empty_frame.pack(fill="x", padx=10, pady=10)
+
+            ctk.CTkLabel(
+                empty_frame,
+                text="📭 Рецепты не найдены",
+                font=ctk.CTkFont(size=16),
+                text_color="#777777"
+            ).place(relx=0.5, rely=0.5, anchor="center")
 
     def _handle_no_data(self):
         """Обрабатывает отсутствие данных"""
         self._prescriptions_data = []
         self._update_prescriptions_list()
-        messagebox.showwarning("Предупреждение", "Нет данных о рецептах")
+        if self.winfo_exists():
+            messagebox.showwarning("Предупреждение", "Нет данных о рецептах")
 
     def _handle_error(self, message):
         """Обрабатывает ошибки"""
         self._prescriptions_data = []
         self._update_prescriptions_list()
-        messagebox.showerror("Ошибка", message)
+        if self.winfo_exists():
+            messagebox.showerror("Ошибка", message)
 
     def _create_prescription_card(self, prescription):
         """Создает карточку рецепта."""
+        if not self.scrollable_frame or not self.scrollable_frame.winfo_exists():
+            return
         container = ctk.CTkFrame(
             self.scrollable_frame,
             fg_color="#333333",
@@ -341,10 +365,10 @@ class PrescriptionsPage(ctk.CTkFrame):
             border_color="#444444"
         )
         container.pack(fill="x", padx=10, pady=8)
-        
+
         top_frame = ctk.CTkFrame(container, fg_color="transparent")
         top_frame.pack(fill="x", padx=10, pady=(10, 0))
-        
+
         ctk.CTkLabel(
             top_frame,
             text=f"📋 Рецепт #{prescription['id']}",
@@ -352,7 +376,7 @@ class PrescriptionsPage(ctk.CTkFrame):
             text_color="#4d8af0",
             anchor="w"
         ).pack(side="left", fill="x", expand=True)
-        
+
         ctk.CTkLabel(
             top_frame,
             text=f"📅 {prescription['date'].strftime('%d.%m.%Y')}",
@@ -360,7 +384,7 @@ class PrescriptionsPage(ctk.CTkFrame):
             text_color="#aaaaaa",
             anchor="e"
         ).pack(side="right")
-        
+
         info_frame = ctk.CTkFrame(container, fg_color="transparent")
         info_frame.pack(fill="x", padx=10, pady=(5, 0))
 
@@ -371,7 +395,7 @@ class PrescriptionsPage(ctk.CTkFrame):
             text_color="#cccccc",
             anchor="w"
         ).pack(fill="x", pady=2)
-        
+
         ctk.CTkLabel(
             info_frame,
             text=f"👤 Пациент: {prescription['patient']}",
@@ -379,7 +403,7 @@ class PrescriptionsPage(ctk.CTkFrame):
             text_color="#cccccc",
             anchor="w"
         ).pack(fill="x", pady=2)
-        
+
         ctk.CTkLabel(
             info_frame,
             text=f"💊 Препарат: {prescription['medicine']}",
@@ -387,10 +411,10 @@ class PrescriptionsPage(ctk.CTkFrame):
             text_color="#4d8af0",
             anchor="w"
         ).pack(fill="x", pady=2)
-        
+
         btn_frame = ctk.CTkFrame(container, fg_color="transparent")
         btn_frame.pack(fill="x", padx=10, pady=(5, 10))
-        
+
         ctk.CTkButton(
             btn_frame,
             text="Удалить",
@@ -406,6 +430,8 @@ class PrescriptionsPage(ctk.CTkFrame):
 
     def delete_prescription(self, prescription):
         """Удаляет рецепт после подтверждения."""
+        if not self.winfo_exists():
+            return
         answer = messagebox.askyesno(
             "Удаление рецепта",
             f"Вы действительно хотите удалить рецепт ID={prescription['id']}?"
@@ -414,54 +440,64 @@ class PrescriptionsPage(ctk.CTkFrame):
             return
 
         self._show_loading_spinner()
-        
+
         try:
-            response = api.delete(endpoint=f'order/recipe/{prescription["id"]}')
+            response = api.delete(
+                endpoint=f'order/recipe/{prescription["id"]}')
             if response:
                 self._handle_delete_success()
             else:
-                messagebox.showerror("Ошибка", "Не удалось удалить рецепт")
+                if self.winfo_exists():
+                    messagebox.showerror("Ошибка", "Не удалось удалить рецепт")
         except Exception as e:
-            messagebox.showerror("Ошибка", f"Ошибка при удалении: {str(e)}")
+            if self.winfo_exists():
+                messagebox.showerror(
+                    "Ошибка", f"Ошибка при удалении: {str(e)}")
         finally:
-            self.scrollable_frame._parent_canvas.yview_moveto(0)
+            if self.scrollable_frame and self.scrollable_frame.winfo_exists():
+                self.scrollable_frame._parent_canvas.yview_moveto(0)
             self.refresh_prescriptions_list()
 
     def _handle_delete_success(self):
         """Обрабатывает успешное удаление рецепта"""
-        messagebox.showinfo("Успех", "Рецепт успешно удалён")
+        if self.winfo_exists():
+            messagebox.showinfo("Успех", "Рецепт успешно удалён")
 
     def open_add_modal(self):
         """Модальное окно для создания нового рецепта."""
+        if not self.winfo_exists():
+            return
         if not self._medicines_list:
-            messagebox.showwarning("Предупреждение", "Список лекарств ещё не загружен")
+            messagebox.showwarning(
+                "Предупреждение", "Список лекарств ещё не загружен")
             return
 
         modal = ctk.CTkToplevel(self)
+        modal.transient(self)  # Модальное поверх основного окна
         modal.title("Добавить новый рецепт")
         modal.geometry("500x750")
         modal.configure(fg_color="#1a1a1a")
         modal.grab_set()
-        modal.transient(self)
+        modal.focus_set()  # Устанавливаем фокус
         modal.resizable(False, False)
 
         header_frame = ctk.CTkFrame(modal, fg_color="transparent")
         header_frame.pack(pady=(20, 15), fill="x", padx=20)
-        
+
         ctk.CTkLabel(
             header_frame,
             text="▌",
             font=ctk.CTkFont(size=28),
             text_color="#2e8b57"
         ).pack(side="left", padx=(0, 10))
-        
+
         ctk.CTkLabel(
             header_frame,
             text="Новый рецепт",
             font=ctk.CTkFont(size=22, weight="bold"),
             text_color="#ffffff"
         ).pack(side="left")
-        
+
         ctk.CTkLabel(
             header_frame,
             text="▐",
@@ -471,14 +507,14 @@ class PrescriptionsPage(ctk.CTkFrame):
 
         form_frame = ctk.CTkFrame(modal, fg_color="transparent")
         form_frame.pack(pady=(0, 20), padx=20, fill="both", expand=True)
-        
+
         ctk.CTkLabel(
             form_frame,
             text="ФИО врача:",
             font=ctk.CTkFont(size=14),
             text_color="#d6d6d6"
         ).pack(anchor="w", pady=(10, 2))
-        
+
         entry_doctor = ctk.CTkEntry(
             form_frame,
             placeholder_text="Введите ФИО врача",
@@ -496,7 +532,7 @@ class PrescriptionsPage(ctk.CTkFrame):
             font=ctk.CTkFont(size=14),
             text_color="#d6d6d6"
         ).pack(anchor="w", pady=(10, 2))
-        
+
         entry_licence = ctk.CTkEntry(
             form_frame,
             placeholder_text="Введите номер лицензии врача",
@@ -514,7 +550,7 @@ class PrescriptionsPage(ctk.CTkFrame):
             font=ctk.CTkFont(size=14),
             text_color="#d6d6d6"
         ).pack(anchor="w", pady=(10, 2))
-        
+
         entry_patient = ctk.CTkEntry(
             form_frame,
             placeholder_text="Введите ФИО пациента",
@@ -532,7 +568,7 @@ class PrescriptionsPage(ctk.CTkFrame):
             font=ctk.CTkFont(size=14),
             text_color="#d6d6d6"
         ).pack(anchor="w", pady=(10, 2))
-        
+
         entry_date = ctk.CTkEntry(
             form_frame,
             placeholder_text="дд.мм.ГГГГ",
@@ -550,7 +586,7 @@ class PrescriptionsPage(ctk.CTkFrame):
             font=ctk.CTkFont(size=14),
             text_color="#d6d6d6"
         ).pack(anchor="w", pady=(10, 2))
-        
+
         combo_med = ctk.CTkComboBox(
             form_frame,
             values=sorted(self._medicines_list),
@@ -566,7 +602,7 @@ class PrescriptionsPage(ctk.CTkFrame):
 
         btn_frame = ctk.CTkFrame(modal, fg_color="transparent")
         btn_frame.pack(pady=(0, 20), padx=20, fill="x")
-        
+
         def on_confirm():
             doctor = entry_doctor.get().strip()
             license = entry_licence.get().strip()
@@ -581,23 +617,26 @@ class PrescriptionsPage(ctk.CTkFrame):
             try:
                 dt = datetime.strptime(date_text, "%d.%m.%Y")
             except ValueError:
-                messagebox.showerror("Ошибка", "Некорректный формат даты. Используйте дд.мм.ГГГГ")
+                messagebox.showerror(
+                    "Ошибка", "Некорректный формат даты. Используйте дд.мм.ГГГГ")
                 return
 
             try:
                 license_number = int(license)
             except ValueError:
-                messagebox.showerror("Ошибка", "Номер лицензии должен быть числом")
+                messagebox.showerror(
+                    "Ошибка", "Номер лицензии должен быть числом")
                 return
 
             medicine_id = self._medicines_dict.get(medicine)
             if not medicine_id:
-                messagebox.showerror("Ошибка", "Выбранное лекарство не найдено")
+                messagebox.showerror(
+                    "Ошибка", "Выбранное лекарство не найдено")
                 return
 
             prescription_data = {
                 "doctor_name": doctor,
-                "license_number": license_number, 
+                "license_number": license_number,
                 "client_name": patient,
                 "medicine_id": medicine_id,
                 "issue_date": dt.date().isoformat()
@@ -605,27 +644,32 @@ class PrescriptionsPage(ctk.CTkFrame):
 
             modal.destroy()
             self._show_loading_spinner()
-            
+
             try:
                 headers = {
                     "Content-Type": "application/json",
                     "Accept": "application/json"
                 }
-                
+
                 response = api.post(
-                    endpoint='order/recipe', 
+                    endpoint='order/recipe',
                     json_data=prescription_data,
                     headers=headers
                 )
-                
+
                 if response and response.get("id"):
-                    messagebox.showinfo("Успех", "Рецепт успешно создан")
+                    if self.winfo_exists():
+                        messagebox.showinfo("Успех", "Рецепт успешно создан")
                     self.refresh_prescriptions_list()
                 else:
-                    error_msg = response.get("detail", "Не удалось создать рецепт")
-                    messagebox.showerror("Ошибка", error_msg)
+                    error_msg = response.get(
+                        "detail", "Не удалось создать рецепт") if response else "Не удалось создать рецепт"
+                    if self.winfo_exists():
+                        messagebox.showerror("Ошибка", error_msg)
             except Exception as e:
-                messagebox.showerror("Ошибка", f"Ошибка при создании рецепта: {str(e)}")
+                if self.winfo_exists():
+                    messagebox.showerror(
+                        "Ошибка", f"Ошибка при создании рецепта: {str(e)}")
             finally:
                 self._hide_loading_spinner()
 
